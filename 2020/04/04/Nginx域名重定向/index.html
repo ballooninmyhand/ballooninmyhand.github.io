@@ -14,13 +14,13 @@
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+    var CONFIG = {"hostname":"luoding.site","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"XR6JS6RVRY","apiKey":"4950b6e734c27847c8112b7eaee87450","indexName":"test","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
   <meta name="description" content="假设 www.old.com 为旧的域名，而 www.new.com 为新的域名，要实现当我们访问 new 的时候自动重定向到 old 域名，应该怎么配置呢？ 如下所示，修改对应网站配置文件新增配置即可： 123if ($host !&#x3D; &quot;www.old.com&quot;)&amp;#123;   rewrite ^&#x2F;(.*)$ http:&#x2F;&#x2F;www.old.com&#x2F;$1 permanent;&amp;#125;">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Nginx 域名重定向">
-<meta property="og:url" content="http://yoursite.com/2020/04/04/Nginx%E5%9F%9F%E5%90%8D%E9%87%8D%E5%AE%9A%E5%90%91/index.html">
+<meta property="og:url" content="https://luoding.site/2020/04/04/Nginx%E5%9F%9F%E5%90%8D%E9%87%8D%E5%AE%9A%E5%90%91/index.html">
 <meta property="og:site_name" content="个人博客">
 <meta property="og:description" content="假设 www.old.com 为旧的域名，而 www.new.com 为新的域名，要实现当我们访问 new 的时候自动重定向到 old 域名，应该怎么配置呢？ 如下所示，修改对应网站配置文件新增配置即可： 123if ($host !&#x3D; &quot;www.old.com&quot;)&amp;#123;   rewrite ^&#x2F;(.*)$ http:&#x2F;&#x2F;www.old.com&#x2F;$1 permanent;&amp;#125;">
 <meta property="og:locale" content="zh_CN">
@@ -30,7 +30,7 @@
 <meta property="article:tag" content="Nginx">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://yoursite.com/2020/04/04/Nginx%E5%9F%9F%E5%90%8D%E9%87%8D%E5%AE%9A%E5%90%91/">
+<link rel="canonical" href="https://luoding.site/2020/04/04/Nginx%E5%9F%9F%E5%90%8D%E9%87%8D%E5%AE%9A%E5%90%91/">
 
 
 <script id="page-configurations">
@@ -102,6 +102,7 @@
 
   <div class="site-nav-right">
     <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
     </div>
   </div>
 </div>
@@ -131,11 +132,35 @@
     <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
 
   </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
   </ul>
 </nav>
 
 
 
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
 
 </div>
     </header>
@@ -159,7 +184,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/04/Nginx%E5%9F%9F%E5%90%8D%E9%87%8D%E5%AE%9A%E5%90%91/">
+    <link itemprop="mainEntityOfPage" href="https://luoding.site/2020/04/04/Nginx%E5%9F%9F%E5%90%8D%E9%87%8D%E5%AE%9A%E5%90%91/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpeg">
@@ -412,6 +437,13 @@
 
   
 
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
 
 
 
