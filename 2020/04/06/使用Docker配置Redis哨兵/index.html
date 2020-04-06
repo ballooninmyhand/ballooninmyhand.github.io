@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/headpic.jpeg">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"luoding.site","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"XR6JS6RVRY","apiKey":"4950b6e734c27847c8112b7eaee87450","indexName":"test","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="本篇文章介绍如何使用 Docker 配置 Redis 哨兵来监视 Redis 主从服务器，实现 Redis 的高可用性。内容包括涉及的目录结构、docker-compose.yml 的编写以及结果的验证。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 Docker 配置 Redis 哨兵">
+<meta property="og:url" content="https://luoding.site/2020/04/06/%E4%BD%BF%E7%94%A8Docker%E9%85%8D%E7%BD%AERedis%E5%93%A8%E5%85%B5/index.html">
+<meta property="og:site_name" content="个人博客">
+<meta property="og:description" content="本篇文章介绍如何使用 Docker 配置 Redis 哨兵来监视 Redis 主从服务器，实现 Redis 的高可用性。内容包括涉及的目录结构、docker-compose.yml 的编写以及结果的验证。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/00831rSTgy1gdk4ftcmvlj31bs0netmx.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/00831rSTgy1gdk3yrtk9dj31900ho7bv.jpg">
+<meta property="article:published_time" content="2020-04-06T03:15:13.000Z">
+<meta property="article:modified_time" content="2020-04-06T09:04:14.762Z">
+<meta property="article:author" content="luoding">
+<meta property="article:tag" content="Docker">
+<meta property="article:tag" content="docker-compose">
+<meta property="article:tag" content="Redis">
+<meta property="article:tag" content="Sentinel">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/00831rSTgy1gdk4ftcmvlj31bs0netmx.jpg">
+
+<link rel="canonical" href="https://luoding.site/2020/04/06/%E4%BD%BF%E7%94%A8Docker%E9%85%8D%E7%BD%AERedis%E5%93%A8%E5%85%B5/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>使用 Docker 配置 Redis 哨兵 | 个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">好记性不如烂笔头</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://luoding.site/2020/04/06/%E4%BD%BF%E7%94%A8Docker%E9%85%8D%E7%BD%AERedis%E5%93%A8%E5%85%B5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="luoding">
+      <meta itemprop="description" content="气球在我手上">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          使用 Docker 配置 Redis 哨兵
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-04-06 11:15:13 / 修改时间：17:04:14" itemprop="dateCreated datePublished" datetime="2020-04-06T11:15:13+08:00">2020-04-06</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Docker/" itemprop="url" rel="index"><span itemprop="name">Docker</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Docker/Redis/" itemprop="url" rel="index"><span itemprop="name">Redis</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2020/04/06/%E4%BD%BF%E7%94%A8Docker%E9%85%8D%E7%BD%AERedis%E5%93%A8%E5%85%B5/" class="post-meta-item leancloud_visitors" data-flag-title="使用 Docker 配置 Redis 哨兵" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/04/06/%E4%BD%BF%E7%94%A8Docker%E9%85%8D%E7%BD%AERedis%E5%93%A8%E5%85%B5/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/04/06/%E4%BD%BF%E7%94%A8Docker%E9%85%8D%E7%BD%AERedis%E5%93%A8%E5%85%B5/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本篇文章介绍如何使用 Docker 配置 Redis 哨兵来监视 Redis 主从服务器，实现 Redis 的高可用性。内容包括涉及的目录结构、<code>docker-compose.yml</code> 的编写以及结果的验证。</p>
+<a id="more"></a>
+
+
+
+<h3 id="目录结构"><a href="#目录结构" class="headerlink" title="目录结构"></a>目录结构</h3><p>项目的目录结构如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── README.md                     # 说明文档</span><br><span class="line">├── docker-compose-example.yml    # docker-compose.yml 的副本</span><br><span class="line">├── docker-compose.yml            # docker-compose 启动文件</span><br><span class="line">├── env.example                   # 配置文件副本</span><br><span class="line">├── redis-master                  # Master 节点</span><br><span class="line">│   ├── conf                      # 配置文件目录</span><br><span class="line">│   │   ├── redis.conf            # Master 节点配置文件</span><br><span class="line">│   │   ├── sentinel.conf         # Sentinel 节点配置文件</span><br><span class="line">│   │   └── start.sh              # 容器启动后运行的脚本</span><br><span class="line">│   ├── data                      # Redis 数据集</span><br><span class="line">│   │   └── dump.rdb</span><br><span class="line">│   └── log                       # 日志目录</span><br><span class="line">│       ├── redis.log             # Master 节点日志</span><br><span class="line">│       └── sentinel.log          # Sentinel 节点日志</span><br><span class="line">├── redis-slave-1                 # slave-1 节点</span><br><span class="line">│   ├── conf</span><br><span class="line">│   │   ├── redis.conf</span><br><span class="line">│   │   ├── sentinel.conf</span><br><span class="line">│   │   └── start.sh</span><br><span class="line">│   ├── data</span><br><span class="line">│   │   └── dump.rdb</span><br><span class="line">│   └── log</span><br><span class="line">│       ├── redis.log</span><br><span class="line">│       └── sentinel.log</span><br><span class="line">└── redis-slave-2                 # slave-2 节点</span><br><span class="line">    ├── conf</span><br><span class="line">    │   ├── redis.conf</span><br><span class="line">    │   ├── sentinel.conf</span><br><span class="line">    │   └── start.sh</span><br><span class="line">    ├── data</span><br><span class="line">    │   └── dump.rdb</span><br><span class="line">    └── log</span><br><span class="line">        ├── redis.log</span><br><span class="line">        └── sentinel.log</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="配置哨兵"><a href="#配置哨兵" class="headerlink" title="配置哨兵"></a>配置哨兵</h3><h4 id="节点配置示意图"><a href="#节点配置示意图" class="headerlink" title="节点配置示意图"></a>节点配置示意图</h4><p>下面的示意图中，将采用 Redis 官方文档所使用的表示方法，<code>M</code> 代表一个 Master 节点，<code>R</code> 代表一个 Replica 节点，<code>S</code> 代表一个 Sentinel 节点。</p>
+<p>从整个集群的稳定性角度考虑，首先 Master 节点和各个 Replica 节点不应同时处于同一台服务器上，以避免单台虚拟机或物理机不可用造成整个集群失效。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">       +----+</span><br><span class="line">       | M1 |</span><br><span class="line">       | S1 |</span><br><span class="line">       +----+</span><br><span class="line">          |</span><br><span class="line">+----+    |    +----+</span><br><span class="line">| R2 |----+----| R3 |</span><br><span class="line">| S2 |         | S3 |</span><br><span class="line">+----+         +----+</span><br><span class="line"></span><br><span class="line">配置最少投票节点为2，即有2个哨兵节点投票选举出新的 Master 即可完成切换。</span><br></pre></td></tr></table></figure>
+
+<p>在本示例中，将采用如上的节点配置，Master 节点和每个 Replica 节点分别运行中不同的容器中，同时每个容器中还分别运行 Sentinel 节点。</p>
+<h4 id="编辑配置文件"><a href="#编辑配置文件" class="headerlink" title="编辑配置文件"></a>编辑配置文件</h4><p>编辑 <code>sentinel.conf</code> 文件，修改如下配置：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> Sentinel.conf</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 端口号</span></span><br><span class="line">port 26379</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 配置哨兵的监控参数</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 格式：sentinel monitor &lt;mastername&gt; &lt;masterip&gt; &lt;masterport&gt; &lt;quorum&gt;</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> mastername 是为这个被监控的 master 起的名字</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> masterip 是被监控的 master 的 IP 或主机名。因为 Docker 容器之间可以使用容器名访问，所以这里写 master 节点的容器名</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> masterport 是被监控节点所监听的端口号</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> quorom 设定了当几个哨兵判定这个节点失效后，才认为这个节点真的失效了</span></span><br><span class="line">sentinel monitor redis-master redis-master 6379 2</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 连接主节点的密码</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 格式：sentinel auth-pass &lt;master-name&gt; &lt;password&gt;</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> sentinel auth-pass 172.20.0.7 redis</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> master 在连续多长时间无法响应 PING 指令后，就会主观判定节点下线，默认是 30s</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 格式：sentinel down-after-milliseconds &lt;mastername&gt; &lt;milliseconds&gt;</span></span><br><span class="line">sentinel down-after-milliseconds redis-master 30000</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 日志文件</span></span><br><span class="line">logfile "/var/log/redis/sentinel.log"</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="配置及启动容器"><a href="#配置及启动容器" class="headerlink" title="配置及启动容器"></a>配置及启动容器</h3><h4 id="编写-docker-compose-yml"><a href="#编写-docker-compose-yml" class="headerlink" title="编写 docker-compose.yml"></a>编写 <code>docker-compose.yml</code></h4><p>这里使用 <code>docker-compose</code> 管理容器，配置文件如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br></pre></td><td class="code"><pre><span class="line">version: "3"</span><br><span class="line">services:</span><br><span class="line"><span class="meta">  #</span><span class="bash"> Master 节点容器</span></span><br><span class="line">  redis-master:</span><br><span class="line">    image: redis:$&#123;REDIS_VERSION&#125;</span><br><span class="line">    container_name: redis-master</span><br><span class="line">    # 映射端口</span><br><span class="line">    ports:</span><br><span class="line">      # Master 节点端口</span><br><span class="line">      - $&#123;REDIS_HOST_PORT&#125;:6379</span><br><span class="line">      # Sentinel-1 节点端口</span><br><span class="line">      - $&#123;REDIS_SENTINEL_1_HOST_PORT&#125;:26379</span><br><span class="line">    # 映射目录</span><br><span class="line">    volumes:</span><br><span class="line">      - $&#123;REDIS_CONF_DIR&#125;:/etc/redis</span><br><span class="line">      - $&#123;REDIS_DATA_DIR&#125;:/data</span><br><span class="line">      - $&#123;REDIS_LOG_DIR&#125;:/var/log/redis</span><br><span class="line">    restart: always</span><br><span class="line">    # 指定网络和 IP</span><br><span class="line">    networks:</span><br><span class="line">      default:</span><br><span class="line">        ipv4_address: 172.20.0.4</span><br><span class="line">    # 指定时区</span><br><span class="line">    environment:</span><br><span class="line">      TZ: $&#123;TIMEZONE&#125;</span><br><span class="line">    privileged: true</span><br><span class="line">    # 容器启动后执行脚本</span><br><span class="line">    command: ["/bin/bash","/etc/redis/start.sh"]</span><br><span class="line"><span class="meta">  #</span><span class="bash"> slave-1 节点容器</span></span><br><span class="line">  redis-slave-1:</span><br><span class="line">    image: redis:$&#123;REDIS_VERSION&#125;</span><br><span class="line">    container_name: redis-slave-1</span><br><span class="line">    ports:</span><br><span class="line">      - $&#123;REDIS_SLAVE_1_HOST_PORT&#125;:6379</span><br><span class="line">      - $&#123;REDIS_SENTINEL_2_HOST_PORT&#125;:26379</span><br><span class="line">    volumes:</span><br><span class="line">      - $&#123;REDIS_SLAVE_1_CONF_DIR&#125;:/etc/redis</span><br><span class="line">      - $&#123;REDIS_SLAVE_1_DATA_DIR&#125;:/data</span><br><span class="line">      - $&#123;REDIS_SLAVE_1_LOG_DIR&#125;:/var/log/redis</span><br><span class="line">    restart: always</span><br><span class="line">    depends_on:</span><br><span class="line">      - redis-master</span><br><span class="line">    networks:</span><br><span class="line">      default:</span><br><span class="line">        ipv4_address: 172.20.0.8</span><br><span class="line">    environment:</span><br><span class="line">      TZ: $&#123;TIMEZONE&#125;</span><br><span class="line">    privileged: true</span><br><span class="line">    command: ["/bin/bash","/etc/redis/start.sh"]</span><br><span class="line"><span class="meta">  #</span><span class="bash"> slave-2 节点容器</span></span><br><span class="line">  redis-slave-2:</span><br><span class="line">    image: redis:$&#123;REDIS_VERSION&#125;</span><br><span class="line">    container_name: redis-slave-2</span><br><span class="line">    ports:</span><br><span class="line">      - $&#123;REDIS_SLAVE_2_HOST_PORT&#125;:6379</span><br><span class="line">      - $&#123;REDIS_SENTINEL_3_HOST_PORT&#125;:26379</span><br><span class="line">    volumes:</span><br><span class="line">      - $&#123;REDIS_SLAVE_2_CONF_DIR&#125;:/etc/redis</span><br><span class="line">      - $&#123;REDIS_SLAVE_2_DATA_DIR&#125;:/data</span><br><span class="line">      - $&#123;REDIS_SLAVE_2_LOG_DIR&#125;:/var/log/redis</span><br><span class="line">    restart: always</span><br><span class="line">    depends_on:</span><br><span class="line">      - redis-master</span><br><span class="line">    networks:</span><br><span class="line">      default:</span><br><span class="line">        ipv4_address: 172.20.0.9</span><br><span class="line">    environment:</span><br><span class="line">      TZ: $&#123;TIMEZONE&#125;</span><br><span class="line">    privileged: true</span><br><span class="line">    command: ["/bin/bash","/etc/redis/start.sh"]</span><br><span class="line">networks:</span><br><span class="line">  default:</span><br><span class="line">    driver: bridge</span><br><span class="line">    ipam:</span><br><span class="line">      driver: default</span><br><span class="line">      config:</span><br><span class="line">        - subnet: 172.20.0.0/24</span><br></pre></td></tr></table></figure>
+
+<h4 id="启动容器"><a href="#启动容器" class="headerlink" title="启动容器"></a>启动容器</h4><p>在 <code>docker-compose.yml</code> 所在目录执行 <code>docker-compose up -d</code> 即可启动上述三个容器，如下图所示：</p>
+<p><img src="https://tva1.sinaimg.cn/large/00831rSTgy1gdk4ftcmvlj31bs0netmx.jpg" alt="image-20200406162147887"></p>
+<p>容器启动成功后，进入容器，可以使用 <code>redis-cli -p 26379</code> 连接到哨兵节点。连接成功后，执行 <code>info sentinel</code> 命令检查哨兵相关信息。</p>
+<p><img src="https://tva1.sinaimg.cn/large/00831rSTgy1gdk3yrtk9dj31900ho7bv.jpg" alt="image-20200406160523345"></p>
+<p>其中，<code>sentinel_masters:1</code> 说明该哨兵正在监控一个 <code>master</code> 节点，最后 <code>master0</code> 这一行说明了 <code>master</code> 节点的名称是 <code>redis-master</code>，状态为 <code>ok</code>，地址是 <code>172.20.0.4:6379</code>，有 2 个从节点，并有 3 个哨兵在监控。</p>
+<h4 id="测试一下"><a href="#测试一下" class="headerlink" title="测试一下"></a>测试一下</h4><p>哨兵光是启动了还是不够的，还需要测试一下当被监控节点下线之后，哨兵是否能作出反应。</p>
+<p>我先停掉一个从节点 <code>redis-slave-2</code>，等了 30 秒后，三个哨兵都认为 <code>redis-slave-2</code> 主观下线。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">redis-sentinel-1  | 8:X 06 Apr 2020 16:27:13.915 # +sdown slave 172.20.0.9:6379 172.20.0.9 6379 @ redis-master 172.20.0.4 6379</span><br><span class="line">redis-sentinel-2  | 8:X 06 Apr 2020 16:27:13.943 # +sdown slave 172.20.0.9:6379 172.20.0.9 6379 @ redis-master 172.20.0.4 6379</span><br><span class="line">redis-sentinel-3  | 8:X 06 Apr 2020 16:27:13.873 # +sdown slave 172.20.0.9:6379 172.20.0.9 6379 @ redis-master 172.20.0.4 6379</span><br></pre></td></tr></table></figure>
+
+<p>重新启动 <code>redis-slave-2</code> 后，三个哨兵都不在认为 <code>redis-slave-2</code> 主观下线。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">redis-sentinel-1  | 8:X 06 Apr 2020 16:31:04.539 * +reboot slave 172.20.0.9:6379 172.20.0.9 6379 @ redis-master 172.20.0.4 6379</span><br><span class="line">redis-sentinel-1  | 8:X 06 Apr 2020 16:31:04.595 # -sdown slave 172.20.0.9:6379 172.20.0.9 6379 @ redis-master 172.20.0.4 6379</span><br><span class="line">redis-sentinel-2  | 8:X 06 Apr 2020 16:31:04.505 * +reboot slave 172.20.0.9:6379 172.20.0.9 6379 @ redis-master 172.20.0.4 6379</span><br><span class="line">redis-sentinel-2  | 8:X 06 Apr 2020 16:31:04.559 # -sdown slave 172.20.0.9:6379 172.20.0.9 6379 @ redis-master 172.20.0.4 6379</span><br><span class="line">redis-sentinel-3  | 8:X 06 Apr 2020 16:31:05.060 * +reboot slave 172.20.0.9:6379 172.20.0.9 6379 @ redis-master 172.20.0.4 6379</span><br><span class="line">redis-sentinel-3  | 8:X 06 Apr 2020 16:31:05.162 # -sdown slave 172.20.0.9:6379 172.20.0.9 6379 @ redis-master 172.20.0.4 6379</span><br></pre></td></tr></table></figure>
+
+<p>这次停掉 Master 节点，再查看日志输出：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">redis-sentinel-1  | 8:X 06 Apr 2020 16:37:18.425 # +sdown master redis-master 172.20.0.4 6379</span><br><span class="line">redis-sentinel-1  | 8:X 06 Apr 2020 16:37:18.504 # +new-epoch 1</span><br><span class="line">redis-sentinel-1  | 8:X 06 Apr 2020 16:37:18.511 # +vote-for-leader 3af4477184a27c5cd2b8cffe777305a3e84253a3 1</span><br><span class="line">redis-sentinel-1  | 8:X 06 Apr 2020 16:37:18.514 # +odown master redis-master 172.20.0.4 6379 #quorum 3&#x2F;2</span><br><span class="line">redis-sentinel-1  | 8:X 06 Apr 2020 16:37:18.518 # Next failover delay: I will not start a failover before Mon Apr  6 16:43:18 2020</span><br><span class="line">redis-sentinel-1  | 8:X 06 Apr 2020 16:37:18.796 # +config-update-from sentinel 3af4477184a27c5cd2b8cffe777305a3e84253a3 172.20.0.8 26379 @ redis-master 172.20.0.4 6379</span><br><span class="line">redis-sentinel-1  | 8:X 06 Apr 2020 16:37:18.800 # +switch-master redis-master 172.20.0.4 6379 172.20.0.8 6379</span><br><span class="line">redis-sentinel-1  | 8:X 06 Apr 2020 16:37:18.806 * +slave slave 172.20.0.9:6379 172.20.0.9 6379 @ redis-master 172.20.0.8 6379</span><br><span class="line">redis-sentinel-1  | 8:X 06 Apr 2020 16:37:18.809 * +slave slave 172.20.0.4:6379 172.20.0.4 6379 @ redis-master 172.20.0.8 6379</span><br><span class="line">redis-sentinel-1  | 8:X 06 Apr 2020 16:37:38.824 # +sdown slave 172.20.0.4:6379 172.20.0.4 6379 @ redis-master 172.20.0.8 6379</span><br><span class="line">redis-sentinel-2  | 8:X 06 Apr 2020 16:37:18.419 # +sdown master redis-master 172.20.0.4 6379</span><br><span class="line">redis-sentinel-2  | 8:X 06 Apr 2020 16:37:18.479 # +odown master redis-master 172.20.0.4 6379 #quorum 3&#x2F;2</span><br><span class="line">redis-sentinel-2  | 8:X 06 Apr 2020 16:37:18.482 # +new-epoch 1</span><br><span class="line">redis-sentinel-2  | 8:X 06 Apr 2020 16:37:18.484 # +try-failover master redis-master 172.20.0.4 6379</span><br><span class="line">redis-sentinel-2  | 8:X 06 Apr 2020 16:37:18.494 # +vote-for-leader 3af4477184a27c5cd2b8cffe777305a3e84253a3 1</span><br><span class="line">redis-sentinel-2  | 8:X 06 Apr 2020 16:37:18.517 # bbc97991cae04a23433d114fb5550212b8c511f8 voted for 3af4477184a27c5cd2b8cffe777305a3e84253a3 1</span><br><span class="line">redis-sentinel-2  | 8:X 06 Apr 2020 16:37:18.520 # f84599e4178829e48714ca7a1418db972414b34c voted for 3af4477184a27c5cd2b8cffe777305a3e84253a3 1</span><br><span class="line">redis-sentinel-2  | 8:X 06 Apr 2020 16:37:18.569 # +elected-leader master redis-master 172.20.0.4 6379</span><br><span class="line">redis-sentinel-2  | 8:X 06 Apr 2020 16:37:18.571 # +failover-state-select-slave master redis-master 172.20.0.4 6379</span><br><span class="line">redis-sentinel-2  | 8:X 06 Apr 2020 16:37:18.653 # +selected-slave slave 172.20.0.8:6379 172.20.0.8 6379 @ redis-master 172.20.0.4 6379</span><br><span class="line">redis-sentinel-2  | 8:X 06 Apr 2020 16:37:18.659 * +failover-state-send-slaveof-noone slave 172.20.0.8:6379 172.20.0.8 6379 @ redis-master 172.20.0.4 6379</span><br><span class="line">redis-sentinel-2  | 8:X 06 Apr 2020 16:37:18.723 * +failover-state-wait-promotion slave 172.20.0.8:6379 172.20.0.8 6379 @ redis-master 172.20.0.4 6379</span><br><span class="line">redis-sentinel-2  | 8:X 06 Apr 2020 16:37:18.757 # +promoted-slave slave 172.20.0.8:6379 172.20.0.8 6379 @ redis-master 172.20.0.4 6379</span><br><span class="line">redis-sentinel-2  | 8:X 06 Apr 2020 16:37:18.758 # +failover-state-reconf-slaves master redis-master 172.20.0.4 6379</span><br><span class="line">redis-sentinel-2  | 8:X 06 Apr 2020 16:37:18.791 * +slave-reconf-sent slave 172.20.0.9:6379 172.20.0.9 6379 @ redis-master 172.20.0.4 6379</span><br><span class="line">redis-sentinel-2  | 8:X 06 Apr 2020 16:37:19.113 * +slave-reconf-inprog slave 172.20.0.9:6379 172.20.0.9 6379 @ redis-master 172.20.0.4 6379</span><br><span class="line">redis-sentinel-2  | 8:X 06 Apr 2020 16:37:19.115 * +slave-reconf-done slave 172.20.0.9:6379 172.20.0.9 6379 @ redis-master 172.20.0.4 6379</span><br><span class="line">redis-sentinel-2  | 8:X 06 Apr 2020 16:37:19.194 # +failover-end master redis-master 172.20.0.4 6379</span><br><span class="line">redis-sentinel-2  | 8:X 06 Apr 2020 16:37:19.201 # +switch-master redis-master 172.20.0.4 6379 172.20.0.8 6379</span><br><span class="line">redis-sentinel-2  | 8:X 06 Apr 2020 16:37:19.204 * +slave slave 172.20.0.9:6379 172.20.0.9 6379 @ redis-master 172.20.0.8 6379</span><br><span class="line">redis-sentinel-2  | 8:X 06 Apr 2020 16:37:19.205 * +slave slave 172.20.0.4:6379 172.20.0.4 6379 @ redis-master 172.20.0.8 6379</span><br><span class="line">redis-sentinel-2  | 8:X 06 Apr 2020 16:37:39.297 # +sdown slave 172.20.0.4:6379 172.20.0.4 6379 @ redis-master 172.20.0.8 6379</span><br><span class="line">redis-sentinel-3  | 8:X 06 Apr 2020 16:37:18.402 # +sdown master redis-master 172.20.0.4 6379</span><br><span class="line">redis-sentinel-3  | 8:X 06 Apr 2020 16:37:18.505 # +new-epoch 1</span><br><span class="line">redis-sentinel-3  | 8:X 06 Apr 2020 16:37:18.512 # +vote-for-leader 3af4477184a27c5cd2b8cffe777305a3e84253a3 1</span><br><span class="line">redis-sentinel-3  | 8:X 06 Apr 2020 16:37:18.796 # +config-update-from sentinel 3af4477184a27c5cd2b8cffe777305a3e84253a3 172.20.0.8 26379 @ redis-master 172.20.0.4 6379</span><br><span class="line">redis-sentinel-3  | 8:X 06 Apr 2020 16:37:18.800 # +switch-master redis-master 172.20.0.4 6379 172.20.0.8 6379</span><br><span class="line">redis-sentinel-3  | 8:X 06 Apr 2020 16:37:18.806 * +slave slave 172.20.0.9:6379 172.20.0.9 6379 @ redis-master 172.20.0.8 6379</span><br><span class="line">redis-sentinel-3  | 8:X 06 Apr 2020 16:37:18.809 * +slave slave 172.20.0.4:6379 172.20.0.4 6379 @ redis-master 172.20.0.8 6379</span><br><span class="line">redis-sentinel-3  | 8:X 06 Apr 2020 16:37:38.826 # +sdown slave 172.20.0.4:6379 172.20.0.4 6379 @ redis-master 172.20.0.8 6379</span><br></pre></td></tr></table></figure>
+
+<p>接下来我们分析一下日志，看看在停掉 Master 节点后，都发生了什么？</p>
+<p>首先，三台哨兵都宣布 Master 节点主观下线，当哨兵收集到足够数量的已下线判断之后，Master 节点被判断为客观下线。</p>
+<p>因为在配置文件中，我们指定了当最少 2 个哨兵认为 Master 节点失效后就会开始选举 (就是 quorom)，所以哨兵 2 提出选举新的 Master 节点。</p>
+<p>接下来，哨兵将开始投票，从 Slave 节点中选举出新的 Master 节点。在达成一致后，被选举的 Master 节点将成为新的 Master 节点，其配置文件将会被改写，来让这个变动永久生效。</p>
+<p>然后，哨兵会通知这个集群的其他节点来加入新的 Master，包括挂掉的那个之前的 Master。</p>
+<p>这样就完成了一次 failover 切换。</p>
+<p>此时，如果重启之前的 Master 节点，哨兵会发现节点上线，并不再主观认为该节点下线。但是，现在这个节点已经变成了一个 Slave 节点。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">redis-sentinel-1  | 8:X 06 Apr 2020 16:51:15.448 # -sdown slave 172.20.0.4:6379 172.20.0.4 6379 @ redis-master 172.20.0.8 6379</span><br><span class="line">redis-sentinel-3  | 8:X 06 Apr 2020 16:51:15.037 # -sdown slave 172.20.0.4:6379 172.20.0.4 6379 @ redis-master 172.20.0.8 6379</span><br><span class="line">redis-sentinel-2  | 8:X 06 Apr 2020 16:51:14.518 # -sdown slave 172.20.0.4:6379 172.20.0.4 6379 @ redis-master 172.20.0.8 6379</span><br><span class="line">redis-sentinel-2  | 8:X 06 Apr 2020 16:51:24.488 * +convert-to-slave slave 172.20.0.4:6379 172.20.0.4 6379 @ redis-master 172.20.0.8 6379</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="项目地址"><a href="#项目地址" class="headerlink" title="项目地址"></a>项目地址</h3><ul>
+<li><a href="https://github.com/ballooninmyhand/docker-redis" target="_blank" rel="noopener">docker-redis</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Docker/" rel="tag"># Docker</a>
+              <a href="/tags/docker-compose/" rel="tag"># docker-compose</a>
+              <a href="/tags/Redis/" rel="tag"># Redis</a>
+              <a href="/tags/Sentinel/" rel="tag"># Sentinel</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/04/04/%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AAVUE%E9%A1%B9%E7%9B%AE/" rel="prev" title="创建一个 VUE 项目">
+      <i class="fa fa-chevron-left"></i> 创建一个 VUE 项目
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#目录结构"><span class="nav-number">1.</span> <span class="nav-text">目录结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置哨兵"><span class="nav-number">2.</span> <span class="nav-text">配置哨兵</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#节点配置示意图"><span class="nav-number">2.1.</span> <span class="nav-text">节点配置示意图</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#编辑配置文件"><span class="nav-number">2.2.</span> <span class="nav-text">编辑配置文件</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置及启动容器"><span class="nav-number">3.</span> <span class="nav-text">配置及启动容器</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#编写-docker-compose-yml"><span class="nav-number">3.1.</span> <span class="nav-text">编写 docker-compose.yml</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#启动容器"><span class="nav-number">3.2.</span> <span class="nav-text">启动容器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#测试一下"><span class="nav-number">3.3.</span> <span class="nav-text">测试一下</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#项目地址"><span class="nav-number">4.</span> <span class="nav-text">项目地址</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="luoding"
+      src="/images/avatar.jpeg">
+  <p class="site-author-name" itemprop="name">luoding</p>
+  <div class="site-description" itemprop="description">气球在我手上</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">12</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">luoding</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : '9HlJu5OEejYtHguUbp4XaOgR-gzGzoHsz',
+      appKey     : 'f8wKVx2R6wV8X5cXQhtIKaYF',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
