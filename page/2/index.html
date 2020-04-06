@@ -180,7 +180,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://luoding.site/2020/04/04/Git%E5%BF%BD%E7%95%A5%E6%96%87%E4%BB%B6%E6%9D%83%E9%99%90%E5%B7%AE%E5%BC%82/">
+    <link itemprop="mainEntityOfPage" href="https://luoding.site/2020/01/04/%E4%BD%BF%E7%94%A8wkhtmltopdf%E5%B0%86html%E8%BD%AC%E4%B8%BApdf%E6%88%96%E5%9B%BE%E7%89%87/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpeg">
@@ -194,7 +194,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/04/04/Git%E5%BF%BD%E7%95%A5%E6%96%87%E4%BB%B6%E6%9D%83%E9%99%90%E5%B7%AE%E5%BC%82/" class="post-title-link" itemprop="url">Git 忽略文件权限差异</a>
+            <a href="/2020/01/04/%E4%BD%BF%E7%94%A8wkhtmltopdf%E5%B0%86html%E8%BD%AC%E4%B8%BApdf%E6%88%96%E5%9B%BE%E7%89%87/" class="post-title-link" itemprop="url">使用 wkhtmltopdf 将 html 转为 pdf 或图片</a>
         </h2>
 
         <div class="post-meta">
@@ -203,22 +203,28 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2020-04-04 21:48:58 / 修改时间：23:12:41" itemprop="dateCreated datePublished" datetime="2020-04-04T21:48:58+08:00">2020-04-04</time>
+              <time title="创建时间：2020-01-04 21:59:43" itemprop="dateCreated datePublished" datetime="2020-01-04T21:59:43+08:00">2020-01-04</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-06 17:12:53" itemprop="dateModified" datetime="2020-04-06T17:12:53+08:00">2020-04-06</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Git/" itemprop="url" rel="index"><span itemprop="name">Git</span></a>
+                  <a href="/categories/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
                 </span>
             </span>
 
           
-            <span id="/2020/04/04/Git%E5%BF%BD%E7%95%A5%E6%96%87%E4%BB%B6%E6%9D%83%E9%99%90%E5%B7%AE%E5%BC%82/" class="post-meta-item leancloud_visitors" data-flag-title="Git 忽略文件权限差异" title="阅读次数">
+            <span id="/2020/01/04/%E4%BD%BF%E7%94%A8wkhtmltopdf%E5%B0%86html%E8%BD%AC%E4%B8%BApdf%E6%88%96%E5%9B%BE%E7%89%87/" class="post-meta-item leancloud_visitors" data-flag-title="使用 wkhtmltopdf 将 html 转为 pdf 或图片" title="阅读次数">
               <span class="post-meta-item-icon">
                 <i class="fa fa-eye"></i>
               </span>
@@ -233,8 +239,8 @@
       </span>
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/2020/04/04/Git%E5%BF%BD%E7%95%A5%E6%96%87%E4%BB%B6%E6%9D%83%E9%99%90%E5%B7%AE%E5%BC%82/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2020/04/04/Git%E5%BF%BD%E7%95%A5%E6%96%87%E4%BB%B6%E6%9D%83%E9%99%90%E5%B7%AE%E5%BC%82/" itemprop="commentCount"></span>
+    <a title="valine" href="/2020/01/04/%E4%BD%BF%E7%94%A8wkhtmltopdf%E5%B0%86html%E8%BD%AC%E4%B8%BApdf%E6%88%96%E5%9B%BE%E7%89%87/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/01/04/%E4%BD%BF%E7%94%A8wkhtmltopdf%E5%B0%86html%E8%BD%AC%E4%B8%BApdf%E6%88%96%E5%9B%BE%E7%89%87/" itemprop="commentCount"></span>
     </a>
   </span>
   
@@ -249,11 +255,16 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>在使用 git 进行版本管理时，有时只是修改了文件的权限，比如将 <code>test.php</code> 权限改为 777，文件内容不做修改，但 git 会认为此文件做了修改，原因是 git 把文件权限也算作文件差异的一部分了。</p>
-<p>那么如何忽略文件权限造成的文件差异呢？</p>
-<p><strong>解决方法：</strong></p>
-<p>修改项目中 <code>.git/config</code> 文件，将 <code>filemode</code> 改为 <code>false</code>。或者执行命令 <code>git config core.filemode false</code> 即可。</p>
-
+          <p>工作中总会遇到一些奇葩的需求，比如需要将一些数据集以图片的形式通过钉钉发送到群里。查询和组装数据简单，钉钉发送图片也有相应文档，但是怎样才能将数据变成一张图片呢？</p>
+<p>这里介绍一种特别的方法，先将数据渲染成 html 页面，再利用工具 <code>wkhtmltopdf</code> 将 html 文件转为 PDF 或图片。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/01/04/%E4%BD%BF%E7%94%A8wkhtmltopdf%E5%B0%86html%E8%BD%AC%E4%B8%BApdf%E6%88%96%E5%9B%BE%E7%89%87/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -272,7 +283,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://luoding.site/2020/04/04/Git%E5%BF%BD%E7%95%A5%E5%B7%B2%E5%8A%A0%E5%85%A5%E7%89%88%E6%9C%AC%E5%BA%93%E7%9A%84%E6%96%87%E4%BB%B6/">
+    <link itemprop="mainEntityOfPage" href="https://luoding.site/2019/12/20/Github%E7%BB%91%E5%AE%9A%E5%9F%9F%E5%90%8D/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpeg">
@@ -286,7 +297,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/04/04/Git%E5%BF%BD%E7%95%A5%E5%B7%B2%E5%8A%A0%E5%85%A5%E7%89%88%E6%9C%AC%E5%BA%93%E7%9A%84%E6%96%87%E4%BB%B6/" class="post-title-link" itemprop="url">Git 忽略已加入版本库的文件</a>
+            <a href="/2019/12/20/Github%E7%BB%91%E5%AE%9A%E5%9F%9F%E5%90%8D/" class="post-title-link" itemprop="url">Github 绑定域名</a>
         </h2>
 
         <div class="post-meta">
@@ -295,22 +306,32 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2020-04-04 21:26:06 / 修改时间：23:12:45" itemprop="dateCreated datePublished" datetime="2020-04-04T21:26:06+08:00">2020-04-04</time>
+              <time title="创建时间：2019-12-20 21:50:31" itemprop="dateCreated datePublished" datetime="2019-12-20T21:50:31+08:00">2019-12-20</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-06 17:11:49" itemprop="dateModified" datetime="2020-04-06T17:11:49+08:00">2020-04-06</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Git/" itemprop="url" rel="index"><span itemprop="name">Git</span></a>
+                  <a href="/categories/%E5%B7%A5%E5%85%B7/" itemprop="url" rel="index"><span itemprop="name">工具</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%B7%A5%E5%85%B7/Github/" itemprop="url" rel="index"><span itemprop="name">Github</span></a>
                 </span>
             </span>
 
           
-            <span id="/2020/04/04/Git%E5%BF%BD%E7%95%A5%E5%B7%B2%E5%8A%A0%E5%85%A5%E7%89%88%E6%9C%AC%E5%BA%93%E7%9A%84%E6%96%87%E4%BB%B6/" class="post-meta-item leancloud_visitors" data-flag-title="Git 忽略已加入版本库的文件" title="阅读次数">
+            <span id="/2019/12/20/Github%E7%BB%91%E5%AE%9A%E5%9F%9F%E5%90%8D/" class="post-meta-item leancloud_visitors" data-flag-title="Github 绑定域名" title="阅读次数">
               <span class="post-meta-item-icon">
                 <i class="fa fa-eye"></i>
               </span>
@@ -325,8 +346,8 @@
       </span>
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/2020/04/04/Git%E5%BF%BD%E7%95%A5%E5%B7%B2%E5%8A%A0%E5%85%A5%E7%89%88%E6%9C%AC%E5%BA%93%E7%9A%84%E6%96%87%E4%BB%B6/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2020/04/04/Git%E5%BF%BD%E7%95%A5%E5%B7%B2%E5%8A%A0%E5%85%A5%E7%89%88%E6%9C%AC%E5%BA%93%E7%9A%84%E6%96%87%E4%BB%B6/" itemprop="commentCount"></span>
+    <a title="valine" href="/2019/12/20/Github%E7%BB%91%E5%AE%9A%E5%9F%9F%E5%90%8D/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2019/12/20/Github%E7%BB%91%E5%AE%9A%E5%9F%9F%E5%90%8D/" itemprop="commentCount"></span>
     </a>
   </span>
   
@@ -341,13 +362,15 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>项目中，我们会用到 <code>.gitignore</code> 来忽略一些文件，不记录这些文件的版本控制。</p>
-<p>然而经常发现，已经添加到 <code>.gitignore</code> 的文件/目录，每次的修改仍会记录版本。</p>
-<p>原因是因为在添加 <code>.gitignore</code> 之前，这些文件已经添加到版本库了，那么如何忽略已加入版本库的文件？</p>
-<p><strong>解决方法：</strong></p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git rm --cached file</span><br><span class="line">git commit -m "delete remote file"</span><br><span class="line">git push</span><br></pre></td></tr></table></figure>
-
-
+          <p>近日搭建了自己的 Blog，使用的是 Hexo + github pages。众所周知，github pages的域名都是统一的 <code>your_name.github.io</code>。想了想，能不能换个自己的域名呢？当然是可以滴！下面来说一下具体的操作步骤。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2019/12/20/Github%E7%BB%91%E5%AE%9A%E5%9F%9F%E5%90%8D/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 

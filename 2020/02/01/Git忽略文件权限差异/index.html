@@ -17,24 +17,20 @@
     var CONFIG = {"hostname":"luoding.site","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"XR6JS6RVRY","apiKey":"4950b6e734c27847c8112b7eaee87450","indexName":"test","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="这篇文章主要介绍如何用 Docker 快速搭建一套 PHP 开发环境。 环境要求 git docker docker-compose">
+  <meta name="description" content="在使用 git 进行版本管理时，有时只是修改了文件的权限，比如将 test.php 权限改为 777，文件内容不做修改，但 git 会认为此文件做了修改，原因是 git 把文件权限也算作文件差异的一部分了。 那么如何忽略文件权限造成的文件差异呢？ 解决方法： 修改项目中 .git&#x2F;config 文件，将 filemode 改为 false。或者执行命令 git config core.filemo">
 <meta property="og:type" content="article">
-<meta property="og:title" content="DNMP 环境搭建">
-<meta property="og:url" content="https://luoding.site/2020/04/04/DNMP%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/index.html">
+<meta property="og:title" content="Git 忽略文件权限差异">
+<meta property="og:url" content="https://luoding.site/2020/02/01/Git%E5%BF%BD%E7%95%A5%E6%96%87%E4%BB%B6%E6%9D%83%E9%99%90%E5%B7%AE%E5%BC%82/index.html">
 <meta property="og:site_name" content="个人博客">
-<meta property="og:description" content="这篇文章主要介绍如何用 Docker 快速搭建一套 PHP 开发环境。 环境要求 git docker docker-compose">
+<meta property="og:description" content="在使用 git 进行版本管理时，有时只是修改了文件的权限，比如将 test.php 权限改为 777，文件内容不做修改，但 git 会认为此文件做了修改，原因是 git 把文件权限也算作文件差异的一部分了。 那么如何忽略文件权限造成的文件差异呢？ 解决方法： 修改项目中 .git&#x2F;config 文件，将 filemode 改为 false。或者执行命令 git config core.filemo">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2020-04-04T15:06:29.000Z">
-<meta property="article:modified_time" content="2020-04-04T15:12:31.975Z">
+<meta property="article:published_time" content="2020-02-01T13:48:58.000Z">
+<meta property="article:modified_time" content="2020-04-06T09:12:07.986Z">
 <meta property="article:author" content="luoding">
-<meta property="article:tag" content="Docker">
-<meta property="article:tag" content="docker-compose">
-<meta property="article:tag" content="Nginx">
-<meta property="article:tag" content="PHP">
-<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="Git">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="https://luoding.site/2020/04/04/DNMP%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">
+<link rel="canonical" href="https://luoding.site/2020/02/01/Git%E5%BF%BD%E7%95%A5%E6%96%87%E4%BB%B6%E6%9D%83%E9%99%90%E5%B7%AE%E5%BC%82/">
 
 
 <script id="page-configurations">
@@ -47,7 +43,7 @@
   };
 </script>
 
-  <title>DNMP 环境搭建 | 个人博客</title>
+  <title>Git 忽略文件权限差异 | 个人博客</title>
   
 
 
@@ -188,7 +184,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://luoding.site/2020/04/04/DNMP%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">
+    <link itemprop="mainEntityOfPage" href="https://luoding.site/2020/02/01/Git%E5%BF%BD%E7%95%A5%E6%96%87%E4%BB%B6%E6%9D%83%E9%99%90%E5%B7%AE%E5%BC%82/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpeg">
@@ -201,7 +197,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          DNMP 环境搭建
+          Git 忽略文件权限差异
         </h1>
 
         <div class="post-meta">
@@ -210,26 +206,28 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2020-04-04 23:06:29 / 修改时间：23:12:31" itemprop="dateCreated datePublished" datetime="2020-04-04T23:06:29+08:00">2020-04-04</time>
+              <time title="创建时间：2020-02-01 21:48:58" itemprop="dateCreated datePublished" datetime="2020-02-01T21:48:58+08:00">2020-02-01</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-06 17:12:07" itemprop="dateModified" datetime="2020-04-06T17:12:07+08:00">2020-04-06</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Docker/" itemprop="url" rel="index"><span itemprop="name">Docker</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Docker/PHP/" itemprop="url" rel="index"><span itemprop="name">PHP</span></a>
+                  <a href="/categories/Git/" itemprop="url" rel="index"><span itemprop="name">Git</span></a>
                 </span>
             </span>
 
           
-            <span id="/2020/04/04/DNMP%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" class="post-meta-item leancloud_visitors" data-flag-title="DNMP 环境搭建" title="阅读次数">
+            <span id="/2020/02/01/Git%E5%BF%BD%E7%95%A5%E6%96%87%E4%BB%B6%E6%9D%83%E9%99%90%E5%B7%AE%E5%BC%82/" class="post-meta-item leancloud_visitors" data-flag-title="Git 忽略文件权限差异" title="阅读次数">
               <span class="post-meta-item-icon">
                 <i class="fa fa-eye"></i>
               </span>
@@ -244,8 +242,8 @@
       </span>
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/2020/04/04/DNMP%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2020/04/04/DNMP%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" itemprop="commentCount"></span>
+    <a title="valine" href="/2020/02/01/Git%E5%BF%BD%E7%95%A5%E6%96%87%E4%BB%B6%E6%9D%83%E9%99%90%E5%B7%AE%E5%BC%82/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/02/01/Git%E5%BF%BD%E7%95%A5%E6%96%87%E4%BB%B6%E6%9D%83%E9%99%90%E5%B7%AE%E5%BC%82/" itemprop="commentCount"></span>
     </a>
   </span>
   
@@ -260,118 +258,10 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>这篇文章主要介绍如何用 Docker 快速搭建一套 PHP 开发环境。</p>
-<h3 id="环境要求"><a href="#环境要求" class="headerlink" title="环境要求"></a>环境要求</h3><ul>
-<li><code>git</code></li>
-<li><code>docker</code></li>
-<li><code>docker-compose</code></li>
-</ul>
-<a id="more"></a>
-
-<h3 id="包含的镜像"><a href="#包含的镜像" class="headerlink" title="包含的镜像"></a>包含的镜像</h3><ul>
-<li>nginx-1.16.0</li>
-<li>php7.3.10（包含composer，包含扩展 amqp、bcmath、Core、ctype、curl、date、dom、fileinfo、filter、ftp、gd、hash、iconv、imap、json、libxml、mbstring、memcached、mongodb、mysqlnd、openssl、pcre、PDO、pdo_mysql、pdo_sqlite、Phar、posix、readline、redis、Reflection、session、SimpleXML、SPL、sqlite3、standard、tokenizer、xml、xmlreader、xmlwriter、zip、zlib）</li>
-<li>php7.1.7</li>
-<li>php5.6.31</li>
-<li>redis</li>
-<li>mysql</li>
-</ul>
-<h3 id="操作步骤"><a href="#操作步骤" class="headerlink" title="操作步骤"></a>操作步骤</h3><ul>
-<li>克隆项目</li>
-</ul>
-<blockquote>
-<p>git clone <a href="https://github.com/ballooninmyhand/dnmp.git" target="_blank" rel="noopener">https://github.com/ballooninmyhand/dnmp.git</a></p>
-</blockquote>
-<ul>
-<li>进入目录</li>
-</ul>
-<blockquote>
-<p>cd dnmp</p>
-</blockquote>
-<ul>
-<li>复制并修改配置文件，设置端口号和工作目录</li>
-</ul>
-<blockquote>
-<p>cp env.example .env</p>
-</blockquote>
-<ul>
-<li>复制 docker-compose-example.yml 文件</li>
-</ul>
-<blockquote>
-<p>cp docker-compose-example.yml docker-compose.yml</p>
-</blockquote>
-<ul>
-<li>使用 <code>docker-compose</code> 创建容器，首次运行请加上 –build 参数</li>
-</ul>
-<blockquote>
-<p>docker-compose up -d [–build]</p>
-</blockquote>
-<ul>
-<li><p>打开浏览器，访问 <code>localhost</code></p>
-</li>
-<li><p>停止并销毁容器</p>
-</li>
-</ul>
-<blockquote>
-<p>docker-compose down</p>
-</blockquote>
-<ul>
-<li>重启某个容器</li>
-</ul>
-<blockquote>
-<p>docker-compose restart 容器1 容器2</p>
-</blockquote>
-<h3 id="安装PHP扩展"><a href="#安装PHP扩展" class="headerlink" title="安装PHP扩展"></a>安装PHP扩展</h3><ul>
-<li>如需安装其他 <code>PHP</code> 扩展，请自行修改 Dockerfile 文件</li>
-</ul>
-<h3 id="如何设置-cron-定时任务"><a href="#如何设置-cron-定时任务" class="headerlink" title="如何设置 cron 定时任务"></a>如何设置 cron 定时任务</h3><ul>
-<li>推荐使用主机的 cron 实现定时任务</li>
-<li>每分钟执行 <code>test.php</code> 脚本，<code>dnmp_php</code> 是容器名称，<code>test.php</code> 在工作目录 <code>/var/www/html</code> 下</li>
-</ul>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">*/1 * * * * /usr/bin/docker exec dnmp_php php /var/www/html/test.php</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="如何在-php-代码中使用-curl"><a href="#如何在-php-代码中使用-curl" class="headerlink" title="如何在 php 代码中使用 curl"></a>如何在 php 代码中使用 curl</h3><ul>
-<li><p>问题：本地开发两个项目 A 和 B，A 需要用到 yar 扩展调用 B 中的一个 rpc 方法，但是发现报错 <code>curl exec failed &#39;Couldn&#39;t connect to server&#39;</code></p>
-</li>
-<li><p>原因：项目A中不能解析设置的域名</p>
-</li>
-<li><p>解决方案：在 <code>docker-compose.yml</code> 中配置静态ip，并在 php 中设置 <code>extra_hosts</code></p>
-<ul>
-<li>配置虚拟网卡driver和subnet：</li>
-</ul>
-<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">networks:</span></span><br><span class="line">  <span class="attr">default:</span></span><br><span class="line">    <span class="attr">driver:</span> <span class="string">bridge</span></span><br><span class="line">    <span class="attr">ipam:</span></span><br><span class="line">      <span class="attr">config:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">subnet:</span> <span class="number">10.0</span><span class="number">.0</span><span class="number">.0</span><span class="string">/24</span></span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>设置nginx的静态ip</li>
-</ul>
-<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">nginx:</span></span><br><span class="line">    <span class="comment">#其他配置...</span></span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">      <span class="attr">default:</span></span><br><span class="line">        <span class="attr">ipv4_address:</span> <span class="number">10.0</span><span class="number">.0</span><span class="number">.10</span></span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>再在php中设置extra_hosts</li>
-</ul>
-<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">php56:</span></span><br><span class="line">    <span class="comment">#其他配置...</span></span><br><span class="line">    <span class="attr">extra_hosts:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">"project.com:10.0.0.10"</span></span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">default</span></span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>重启服务</li>
-</ul>
-</li>
-</ul>
-<h3 id="为什么-mac-上请求一个接口响应需要很久"><a href="#为什么-mac-上请求一个接口响应需要很久" class="headerlink" title="为什么 mac 上请求一个接口响应需要很久"></a>为什么 mac 上请求一个接口响应需要很久</h3><ul>
-<li><p>问题：在 mac 上开发时，请求一个接口需要1800ms，而在linux上只需要300ms</p>
-</li>
-<li><p>原因：<a href="https://docs.docker.com/docker-for-mac/osxfs/" target="_blank" rel="noopener">osxfs</a> 文件系统效率太低，mac 和 container 的文件系统不一样，同步时需要做大量的格式转换。</p>
-</li>
-<li><p>解决方案：安装 bg-sync，基本原理就是使用 daemon 方式建立一个同步磁盘，然后在 docker 启动容器时挂载这个同步磁盘。具体实现方式可以参考文件 <code>docker-compose-mac.yml</code>。</p>
-</li>
-</ul>
-<h3 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h3><ul>
-<li><p><a href="https://github.com/yeszao/dnmp" target="_blank" rel="noopener">https://github.com/yeszao/dnmp</a></p>
-</li>
-<li><p><a href="https://www.awaimai.com/2615.html" target="_blank" rel="noopener">docker 中使用 cron 定时任务</a></p>
-</li>
-</ul>
+        <p>在使用 git 进行版本管理时，有时只是修改了文件的权限，比如将 <code>test.php</code> 权限改为 777，文件内容不做修改，但 git 会认为此文件做了修改，原因是 git 把文件权限也算作文件差异的一部分了。</p>
+<p>那么如何忽略文件权限造成的文件差异呢？</p>
+<p><strong>解决方法：</strong></p>
+<p>修改项目中 <code>.git/config</code> 文件，将 <code>filemode</code> 改为 <code>false</code>。或者执行命令 <code>git config core.filemode false</code> 即可。</p>
 
     </div>
 
@@ -381,11 +271,7 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/Docker/" rel="tag"># Docker</a>
-              <a href="/tags/docker-compose/" rel="tag"># docker-compose</a>
-              <a href="/tags/Nginx/" rel="tag"># Nginx</a>
-              <a href="/tags/PHP/" rel="tag"># PHP</a>
-              <a href="/tags/MySQL/" rel="tag"># MySQL</a>
+              <a href="/tags/Git/" rel="tag"># Git</a>
           </div>
 
         
@@ -394,12 +280,12 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2020/04/04/%E7%94%A8Docker%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AAPHP%E9%95%9C%E5%83%8F/" rel="prev" title="用 Docker 创建一个 PHP 镜像">
-      <i class="fa fa-chevron-left"></i> 用 Docker 创建一个 PHP 镜像
+    <a href="/2020/02/01/Git%E5%BF%BD%E7%95%A5%E5%B7%B2%E5%8A%A0%E5%85%A5%E7%89%88%E6%9C%AC%E5%BA%93%E7%9A%84%E6%96%87%E4%BB%B6/" rel="prev" title="Git 忽略已加入版本库的文件">
+      <i class="fa fa-chevron-left"></i> Git 忽略已加入版本库的文件
     </a></div>
       <div class="post-nav-item">
-    <a href="/2020/04/04/%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AAVUE%E9%A1%B9%E7%9B%AE/" rel="next" title="创建一个 VUE 项目">
-      创建一个 VUE 项目 <i class="fa fa-chevron-right"></i>
+    <a href="/2020/03/04/brew%E5%AE%89%E8%A3%85%E8%BD%AF%E4%BB%B6%E5%8C%85%E5%8D%A1%E6%AD%BB/" rel="next" title="brew 安装软件包卡死">
+      brew 安装软件包卡死 <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -460,7 +346,6 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#环境要求"><span class="nav-number">1.</span> <span class="nav-text">环境要求</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#包含的镜像"><span class="nav-number">2.</span> <span class="nav-text">包含的镜像</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#操作步骤"><span class="nav-number">3.</span> <span class="nav-text">操作步骤</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#安装PHP扩展"><span class="nav-number">4.</span> <span class="nav-text">安装PHP扩展</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#如何设置-cron-定时任务"><span class="nav-number">5.</span> <span class="nav-text">如何设置 cron 定时任务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#如何在-php-代码中使用-curl"><span class="nav-number">6.</span> <span class="nav-text">如何在 php 代码中使用 curl</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#为什么-mac-上请求一个接口响应需要很久"><span class="nav-number">7.</span> <span class="nav-text">为什么 mac 上请求一个接口响应需要很久</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考链接"><span class="nav-number">8.</span> <span class="nav-text">参考链接</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
