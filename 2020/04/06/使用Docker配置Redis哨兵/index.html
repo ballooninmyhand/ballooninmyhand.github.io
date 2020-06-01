@@ -231,27 +231,6 @@
             </span>
 
           
-            <span id="/2020/04/06/%E4%BD%BF%E7%94%A8Docker%E9%85%8D%E7%BD%AERedis%E5%93%A8%E5%85%B5/" class="post-meta-item leancloud_visitors" data-flag-title="使用 Docker 配置 Redis 哨兵" title="阅读次数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-eye"></i>
-              </span>
-              <span class="post-meta-item-text">阅读次数：</span>
-              <span class="leancloud-visitors-count"></span>
-            </span>
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="far fa-comment"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/2020/04/06/%E4%BD%BF%E7%94%A8Docker%E9%85%8D%E7%BD%AERedis%E5%93%A8%E5%85%B5/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2020/04/06/%E4%BD%BF%E7%94%A8Docker%E9%85%8D%E7%BD%AERedis%E5%93%A8%E5%85%B5/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
 
         </div>
       </header>
@@ -338,7 +317,10 @@
     <a href="/2020/04/04/%E4%BD%BF%E7%94%A8Docker%E9%85%8D%E7%BD%AERedis%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6/" rel="prev" title="使用 Docker 配置 Redis 主从复制">
       <i class="fa fa-chevron-left"></i> 使用 Docker 配置 Redis 主从复制
     </a></div>
-      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2020/04/10/Redis-%E5%9F%BA%E7%A1%80%E7%AF%87/" rel="next" title="Redis-基础篇">
+      Redis-基础篇 <i class="fa fa-chevron-right"></i>
+    </a></div>
     </div>
       </footer>
     
@@ -351,7 +333,6 @@
 
           </div>
           
-    <div class="comments" id="valine-comments"></div>
 
 <script>
   window.addEventListener('tabs:register', () => {
@@ -414,14 +395,14 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">12</span>
+          <span class="site-state-item-count">13</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-count">14</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
@@ -525,35 +506,6 @@
   
 
   
-
-
-<script>
-NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
-  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
-    var GUEST = ['nick', 'mail', 'link'];
-    var guest = 'nick,mail,link';
-    guest = guest.split(',').filter(item => {
-      return GUEST.includes(item);
-    });
-    new Valine({
-      el         : '#valine-comments',
-      verify     : false,
-      notify     : false,
-      appId      : '9HlJu5OEejYtHguUbp4XaOgR-gzGzoHsz',
-      appKey     : 'f8wKVx2R6wV8X5cXQhtIKaYF',
-      placeholder: "Just go go",
-      avatar     : 'mm',
-      meta       : guest,
-      pageSize   : '10' || 10,
-      visitor    : true,
-      lang       : '' || 'zh-cn',
-      path       : location.pathname,
-      recordIP   : false,
-      serverURLs : ''
-    });
-  }, window.Valine);
-});
-</script>
 
 </body>
 </html>
