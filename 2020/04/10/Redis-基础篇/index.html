@@ -17,18 +17,22 @@
     var CONFIG = {"hostname":"luoding.site","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"XR6JS6RVRY","apiKey":"4950b6e734c27847c8112b7eaee87450","indexName":"test","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="什么是 Redis？基本概念Redis 是一个用 C 语言编写的，开源的高性能非关系型的键值对数据库。 数据结构Redis 可以存储键和不同类型数据结构值之间的映射关系。键的类型只能是字符串，而值除了基础的五种数据类型之外，还支持一些高级数据类型： 基本数据类型  string 字符串：SET &#x2F; GET &#x2F; GETSET &#x2F; SETEX &#x2F; SETNX list 列表：RPUSH &#x2F; LPUSH">
+  <meta name="description" content="什么是 Redis？基本概念Redis 是一个用 C 语言编写的，开源的高性能非关系型的键值对数据库。 数据结构Redis 可以存储键和不同类型数据结构值之间的映射关系。键的类型只能是字符串，而值除了基础的五种数据类型之外，还支持一些高级数据类型：">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Redis-基础篇">
 <meta property="og:url" content="https://luoding.site/2020/04/10/Redis-%E5%9F%BA%E7%A1%80%E7%AF%87/index.html">
 <meta property="og:site_name" content="个人博客">
-<meta property="og:description" content="什么是 Redis？基本概念Redis 是一个用 C 语言编写的，开源的高性能非关系型的键值对数据库。 数据结构Redis 可以存储键和不同类型数据结构值之间的映射关系。键的类型只能是字符串，而值除了基础的五种数据类型之外，还支持一些高级数据类型： 基本数据类型  string 字符串：SET &#x2F; GET &#x2F; GETSET &#x2F; SETEX &#x2F; SETNX list 列表：RPUSH &#x2F; LPUSH">
+<meta property="og:description" content="什么是 Redis？基本概念Redis 是一个用 C 语言编写的，开源的高性能非关系型的键值对数据库。 数据结构Redis 可以存储键和不同类型数据结构值之间的映射关系。键的类型只能是字符串，而值除了基础的五种数据类型之外，还支持一些高级数据类型：">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/007S8ZIlgy1gfcrd74f3ej30u00fu0wv.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/007S8ZIlgy1gfcroj3c97j30u00fuwi9.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/007S8ZIlgy1gfcrup5fyvj30u00fu435.jpg">
 <meta property="article:published_time" content="2020-04-10T08:14:01.000Z">
-<meta property="article:modified_time" content="2020-04-13T07:17:58.186Z">
+<meta property="article:modified_time" content="2020-06-01T06:53:17.430Z">
 <meta property="article:author" content="luoding">
 <meta property="article:tag" content="Redis">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/007S8ZIlgy1gfcrd74f3ej30u00fu0wv.jpg">
 
 <link rel="canonical" href="https://luoding.site/2020/04/10/Redis-%E5%9F%BA%E7%A1%80%E7%AF%87/">
 
@@ -214,7 +218,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-13 15:17:58" itemprop="dateModified" datetime="2020-04-13T15:17:58+08:00">2020-04-13</time>
+                <time title="修改时间：2020-06-01 14:53:17" itemprop="dateModified" datetime="2020-06-01T14:53:17+08:00">2020-06-01</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -239,6 +243,8 @@
       
         <h3 id="什么是-Redis？"><a href="#什么是-Redis？" class="headerlink" title="什么是 Redis？"></a>什么是 Redis？</h3><h4 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h4><p>Redis 是一个用 C 语言编写的，开源的高性能非关系型的键值对数据库。</p>
 <h4 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h4><p>Redis 可以存储键和不同类型数据结构值之间的映射关系。键的类型只能是字符串，而值除了基础的五种数据类型之外，还支持一些高级数据类型：</p>
+<a id="more"></a>
+
 <p><strong>基本数据类型</strong></p>
 <ul>
 <li>string 字符串：SET / GET / GETSET / SETEX / SETNX</li>
@@ -272,7 +278,46 @@
 <li><strong>Redis 较难支持在线扩容</strong>，在集群容量达到上限时在线扩容会变的很复杂，为避免这一问题，系统上线时必须确保有足够的空间，这对资源造成了很大的浪费</li>
 </ul>
 <h3 id="为什么要用缓存？为什么使用-Redis？"><a href="#为什么要用缓存？为什么使用-Redis？" class="headerlink" title="为什么要用缓存？为什么使用 Redis？"></a>为什么要用缓存？为什么使用 Redis？</h3><h4 id="当前-web-应用现状"><a href="#当前-web-应用现状" class="headerlink" title="当前 web 应用现状"></a>当前 web 应用现状</h4><p>在日常的 Web 应用对数据库的访问中，读操作的次数远远超过写操作，比例大概在 1:9 到 3:7，所以需要读的可能性是比写的可能大得多的。当我们使用 SQL 语句去数据库进行读写操作时，数据库会<strong>去磁盘把对应的数据索引取回来</strong>，这是一个相对较慢的过程。</p>
-<h4 id="使用-Redis-or-使用缓存的优势"><a href="#使用-Redis-or-使用缓存的优势" class="headerlink" title="使用 Redis or 使用缓存的优势"></a>使用 Redis or 使用缓存的优势</h4><p>如果我们把数据放在 Redis 中，也就是直接放在内存中，让服务端直接去读取内存中的数据，这样速度就会提升不少（<strong>高性能</strong>），并且会<strong>极大的减少数据库的压力</strong>（特别是在高并发情况下）。</p>
+<h4 id="使用-Redis-or-使用缓存的优势"><a href="#使用-Redis-or-使用缓存的优势" class="headerlink" title="使用 Redis or 使用缓存的优势"></a>使用 Redis or 使用缓存的优势</h4><p>如果我们把数据放在 Redis 中，也就是直接放在内存中，让服务端直接去读取内存中的数据，这样速度就会提升不少（<strong>高性能</strong>），并且会<strong>极大的减少数据库的压力</strong>（特别是在<strong>高并发</strong>情况下）。</p>
+<h4 id="使用缓存的考虑"><a href="#使用缓存的考虑" class="headerlink" title="使用缓存的考虑"></a>使用缓存的考虑</h4><p>使用内存进行数据存储的开销也是比较大的，<strong>限于成本</strong>的原因，一般只是用 Redis 存储一些<strong>常用和主要的数据</strong>，比如用户的登录信息等。</p>
+<p>一般而言在使用 Redis 进行存储的时候，需要从以下几个方面考虑：</p>
+<ul>
+<li><strong>业务数据常用吗？命中率如何？</strong>如果命中率很低，就没有必要写入缓存</li>
+<li><strong>该业务是读操作多，还是写操作多？</strong>如果写操作多，频繁需要写入数据库，也没有必要使用缓存</li>
+<li><strong>业务数据大小如何？</strong>如果要存储几百兆字节的文件，会给缓存带来很大的压力，这样也没必要使用缓存</li>
+</ul>
+<h3 id="使用缓存会出现什么问题？"><a href="#使用缓存会出现什么问题？" class="headerlink" title="使用缓存会出现什么问题？"></a>使用缓存会出现什么问题？</h3><p>一般来说有如下几个问题，回答思路遵照 <strong>是什么</strong> → <strong>为什么</strong> → <strong>怎么解决</strong>：</p>
+<ol>
+<li>缓存雪崩问题；</li>
+<li>缓存穿透问题；</li>
+<li>缓存和数据库双写一致性问题；</li>
+</ol>
+<h4 id="缓存雪崩问题"><a href="#缓存雪崩问题" class="headerlink" title="缓存雪崩问题"></a>缓存雪崩问题</h4><p><img src="https://tva1.sinaimg.cn/large/007S8ZIlgy1gfcrd74f3ej30u00fu0wv.jpg" alt="image-20200601141104397"></p>
+<p>另外对于 <strong>“Redis 挂掉了，请求全部走数据库”</strong> 这样的情况，还可以有如下的思路：</p>
+<ul>
+<li><strong>事发前：</strong>实现 Redis 的高可用（主从架构 + Sentinel 或者 Redis Cluster），尽量避免 Redis 挂掉这种情况发生</li>
+<li><strong>事发中：</strong>万一 Redis 真的挂掉了，我们可以设置本地缓存 + 限流，尽量避免数据库被干掉（保证服务还能正常工作）</li>
+<li><strong>事发后：</strong>Redis 持久化，重启后自动从磁盘上加载数据，加速恢复缓存数据</li>
+</ul>
+<h4 id="缓存穿透问题"><a href="#缓存穿透问题" class="headerlink" title="缓存穿透问题"></a>缓存穿透问题</h4><p><img src="https://tva1.sinaimg.cn/large/007S8ZIlgy1gfcroj3c97j30u00fuwi9.jpg" alt="image-20200601142150497"></p>
+<h4 id="缓存与数据库双写一致问题"><a href="#缓存与数据库双写一致问题" class="headerlink" title="缓存与数据库双写一致问题"></a>缓存与数据库双写一致问题</h4><p><img src="https://tva1.sinaimg.cn/large/007S8ZIlgy1gfcrup5fyvj30u00fu435.jpg" alt="img"></p>
+<p>双写一致性上图还是稍微粗糙了一些，还需要知道两种方案<strong>（先操作数据库和先操作缓存）</strong>分别都有什么优势和对应的问题，可以参考一下下方的文章，写的非常详细。</p>
+<ul>
+<li><a href="https://mp.weixin.qq.com/s?__biz=MzI4Njg5MDA5NA==&mid=2247484609&idx=1&sn=4c053236699fde3c2db1241ab497487b&scene=21#wechat_redirect" target="_blank" rel="noopener">面试前必须要知道的Redis面试题|Java3y</a></li>
+</ul>
+<h3 id="Redis-为什么早期版本选择单线程？"><a href="#Redis-为什么早期版本选择单线程？" class="headerlink" title="Redis 为什么早期版本选择单线程？"></a>Redis 为什么早期版本选择单线程？</h3><h4 id="官方解释"><a href="#官方解释" class="headerlink" title="官方解释"></a>官方解释</h4><p>因为 Redis 是基于内存的操作，<strong>CPU 不是 Redis 的瓶颈</strong>，Redis 的瓶颈最有可能是 <strong>机器内存的大小</strong> 或者 <strong>网络带宽</strong>。既然单线程容易实现，而且 CPU 不会成为瓶颈，那就顺理成章地采用单线程的方案了。</p>
+<h4 id="简单总结一下"><a href="#简单总结一下" class="headerlink" title="简单总结一下"></a>简单总结一下</h4><ol>
+<li>使用单线程模型能带来更好的<strong>可维护性</strong>，方便开发和调试；</li>
+<li>使用单线程模型也能<strong>并发</strong>的处理客户端的请求；（I/O 多路复用机制）</li>
+<li>Redis 服务中运行的绝大多数操作的<strong>性能瓶颈都不是 CPU</strong></li>
+</ol>
+<h3 id="Redis-为什么这么快？"><a href="#Redis-为什么这么快？" class="headerlink" title="Redis 为什么这么快？"></a>Redis 为什么这么快？</h3><p>简单总结：</p>
+<ol>
+<li><strong>纯内存操作：</strong>读取不需要进行磁盘 I/O，所以比传统数据库要快上不少；</li>
+<li><strong>单线程，无锁竞争：</strong>这保证了没有线程的上下文切换，不会因为多线程的一些操作而降低性能</li>
+<li><strong>多路 I/O 复用模型，非阻塞 I/O：</strong>采用多路 I/O 复用技术可以让单个线程高效的处理多个网络连接请求（尽量减少网络 IO 的时间消耗）</li>
+<li><strong>高效的数据结构，加上底层做了大量优化：</strong>Redis 对于底层的数据结构和内存占用做了大量的优化，例如不同长度的字符串使用不同的结构体表示等</li>
+</ol>
 
     </div>
 
@@ -353,7 +398,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#什么是-Redis？"><span class="nav-number">1.</span> <span class="nav-text">什么是 Redis？</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#基本概念"><span class="nav-number">1.1.</span> <span class="nav-text">基本概念</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#数据结构"><span class="nav-number">1.2.</span> <span class="nav-text">数据结构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#总结"><span class="nav-number">1.3.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Redis-优缺点"><span class="nav-number">2.</span> <span class="nav-text">Redis 优缺点</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#优点"><span class="nav-number">2.1.</span> <span class="nav-text">优点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#缺点"><span class="nav-number">2.2.</span> <span class="nav-text">缺点</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#为什么要用缓存？为什么使用-Redis？"><span class="nav-number">3.</span> <span class="nav-text">为什么要用缓存？为什么使用 Redis？</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#当前-web-应用现状"><span class="nav-number">3.1.</span> <span class="nav-text">当前 web 应用现状</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#使用-Redis-or-使用缓存的优势"><span class="nav-number">3.2.</span> <span class="nav-text">使用 Redis or 使用缓存的优势</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#什么是-Redis？"><span class="nav-number">1.</span> <span class="nav-text">什么是 Redis？</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#基本概念"><span class="nav-number">1.1.</span> <span class="nav-text">基本概念</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#数据结构"><span class="nav-number">1.2.</span> <span class="nav-text">数据结构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#总结"><span class="nav-number">1.3.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Redis-优缺点"><span class="nav-number">2.</span> <span class="nav-text">Redis 优缺点</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#优点"><span class="nav-number">2.1.</span> <span class="nav-text">优点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#缺点"><span class="nav-number">2.2.</span> <span class="nav-text">缺点</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#为什么要用缓存？为什么使用-Redis？"><span class="nav-number">3.</span> <span class="nav-text">为什么要用缓存？为什么使用 Redis？</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#当前-web-应用现状"><span class="nav-number">3.1.</span> <span class="nav-text">当前 web 应用现状</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#使用-Redis-or-使用缓存的优势"><span class="nav-number">3.2.</span> <span class="nav-text">使用 Redis or 使用缓存的优势</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#使用缓存的考虑"><span class="nav-number">3.3.</span> <span class="nav-text">使用缓存的考虑</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用缓存会出现什么问题？"><span class="nav-number">4.</span> <span class="nav-text">使用缓存会出现什么问题？</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#缓存雪崩问题"><span class="nav-number">4.1.</span> <span class="nav-text">缓存雪崩问题</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#缓存穿透问题"><span class="nav-number">4.2.</span> <span class="nav-text">缓存穿透问题</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#缓存与数据库双写一致问题"><span class="nav-number">4.3.</span> <span class="nav-text">缓存与数据库双写一致问题</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Redis-为什么早期版本选择单线程？"><span class="nav-number">5.</span> <span class="nav-text">Redis 为什么早期版本选择单线程？</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#官方解释"><span class="nav-number">5.1.</span> <span class="nav-text">官方解释</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#简单总结一下"><span class="nav-number">5.2.</span> <span class="nav-text">简单总结一下</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Redis-为什么这么快？"><span class="nav-number">6.</span> <span class="nav-text">Redis 为什么这么快？</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

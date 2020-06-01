@@ -211,7 +211,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-13 15:17:58" itemprop="dateModified" datetime="2020-04-13T15:17:58+08:00">2020-04-13</time>
+                <time title="修改时间：2020-06-01 14:53:17" itemprop="dateModified" datetime="2020-06-01T14:53:17+08:00">2020-06-01</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -236,41 +236,14 @@
       
           <h3 id="什么是-Redis？"><a href="#什么是-Redis？" class="headerlink" title="什么是 Redis？"></a>什么是 Redis？</h3><h4 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h4><p>Redis 是一个用 C 语言编写的，开源的高性能非关系型的键值对数据库。</p>
 <h4 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h4><p>Redis 可以存储键和不同类型数据结构值之间的映射关系。键的类型只能是字符串，而值除了基础的五种数据类型之外，还支持一些高级数据类型：</p>
-<p><strong>基本数据类型</strong></p>
-<ul>
-<li>string 字符串：SET / GET / GETSET / SETEX / SETNX</li>
-<li>list 列表：RPUSH / LPUSH / RPOP / LPOP</li>
-<li>hash 字典：HSET / HGET / HGETALL</li>
-<li>set 集合：SADD / SMEBERS / SCARD / SPOP</li>
-<li>zset 有序集合：ZADD / ZRANGE / ZCARD / ZSCORE / ZRANK / ZREM</li>
-</ul>
-<p><strong>高级数据类型</strong></p>
-<ul>
-<li>bitMap 位图</li>
-<li>Hyperloglog</li>
-<li>布隆过滤器</li>
-<li>GeoHash</li>
-<li>Pub / Sub</li>
-<li>Stream</li>
-</ul>
-<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>与传统数据库不同的是，Redis 的数据是存在内存中的，所以读写速度非常快，因此 Redis 被广泛运用于缓存方向，每秒可以处理超过 10 万次读写操作，是已知性能最快的 KV 数据库。另外，Redis 也经常用来做分布式锁。</p>
-<p>除此之外，Redis 还支持事务、持久化、LUA 脚本、LRU 驱动事件、多种集群方案。</p>
-<h3 id="Redis-优缺点"><a href="#Redis-优缺点" class="headerlink" title="Redis 优缺点"></a>Redis 优缺点</h3><h4 id="优点"><a href="#优点" class="headerlink" title="优点"></a>优点</h4><ul>
-<li><strong>读写性能优异</strong>，Redis 能读的速度是 <code>110000次/s</code>，写的速度是 <code>81000次/s</code></li>
-<li><strong>支持数据持久化</strong>，支持 RDB 和 AOF 两种持久化方式</li>
-<li><strong>支持事务</strong>，Redis 的所有操作都是原子性的，同时 Redis 还支持对几个操作合并后的原子性执行</li>
-<li><strong>数据结构丰富</strong>，除了支持 string 类型的 value 之外，还支持 hash、list、set、zset 等数据结构</li>
-<li><strong>支持主从复制</strong>，主机会自动将数据同步到从机，可以进行读写分离</li>
-</ul>
-<h4 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h4><ul>
-<li>数据库<strong>容易受到物理内存的限制</strong>，不能用作海量数据的高性能读写，因此 Redis 适合的场景主要局限在较小数据量的高性能操作和运算上</li>
-<li>Redis <strong>不具备自动容错和恢复功能</strong>，主机从机的宕机都会导致部分读写请求失败，需要等待机器重启或者手动切换前端 IP 才能恢复</li>
-<li>主机宕机，宕机前有一部分数据未能同步到从机，造成主从数据不一致，降低了<strong>系统的可用性</strong></li>
-<li><strong>Redis 较难支持在线扩容</strong>，在集群容量达到上限时在线扩容会变的很复杂，为避免这一问题，系统上线时必须确保有足够的空间，这对资源造成了很大的浪费</li>
-</ul>
-<h3 id="为什么要用缓存？为什么使用-Redis？"><a href="#为什么要用缓存？为什么使用-Redis？" class="headerlink" title="为什么要用缓存？为什么使用 Redis？"></a>为什么要用缓存？为什么使用 Redis？</h3><h4 id="当前-web-应用现状"><a href="#当前-web-应用现状" class="headerlink" title="当前 web 应用现状"></a>当前 web 应用现状</h4><p>在日常的 Web 应用对数据库的访问中，读操作的次数远远超过写操作，比例大概在 1:9 到 3:7，所以需要读的可能性是比写的可能大得多的。当我们使用 SQL 语句去数据库进行读写操作时，数据库会<strong>去磁盘把对应的数据索引取回来</strong>，这是一个相对较慢的过程。</p>
-<h4 id="使用-Redis-or-使用缓存的优势"><a href="#使用-Redis-or-使用缓存的优势" class="headerlink" title="使用 Redis or 使用缓存的优势"></a>使用 Redis or 使用缓存的优势</h4><p>如果我们把数据放在 Redis 中，也就是直接放在内存中，让服务端直接去读取内存中的数据，这样速度就会提升不少（<strong>高性能</strong>），并且会<strong>极大的减少数据库的压力</strong>（特别是在高并发情况下）。</p>
-
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/04/10/Redis-%E5%9F%BA%E7%A1%80%E7%AF%87/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
