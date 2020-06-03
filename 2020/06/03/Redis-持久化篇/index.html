@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/headpic.jpeg">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"luoding.site","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"XR6JS6RVRY","apiKey":"4950b6e734c27847c8112b7eaee87450","indexName":"test","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="什么是持久化？先简单谈一谈是什么Redis 的数据 全部存储 在 内存 中，如果 突然宕机，数据就会全部丢失，因此必须有一套机制来保证 Redis 的数据不会因为故障而丢失，这种机制就是 Redis 的 持久化机制，它会将内存中的数据库状态 保存到磁盘 中。 持久化发生了什么通常来说，从客户端发起请求开始，到服务器真实地写入磁盘，需要发生如下几件事情：  客户端向数据库 发送写命令（数据在客户端的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis-持久化篇">
+<meta property="og:url" content="https://luoding.site/2020/06/03/Redis-%E6%8C%81%E4%B9%85%E5%8C%96%E7%AF%87/index.html">
+<meta property="og:site_name" content="个人博客">
+<meta property="og:description" content="什么是持久化？先简单谈一谈是什么Redis 的数据 全部存储 在 内存 中，如果 突然宕机，数据就会全部丢失，因此必须有一套机制来保证 Redis 的数据不会因为故障而丢失，这种机制就是 Redis 的 持久化机制，它会将内存中的数据库状态 保存到磁盘 中。 持久化发生了什么通常来说，从客户端发起请求开始，到服务器真实地写入磁盘，需要发生如下几件事情：  客户端向数据库 发送写命令（数据在客户端的">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-06-03T02:05:51.000Z">
+<meta property="article:modified_time" content="2020-06-03T03:04:11.123Z">
+<meta property="article:author" content="luoding">
+<meta property="article:tag" content="Redis">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://luoding.site/2020/06/03/Redis-%E6%8C%81%E4%B9%85%E5%8C%96%E7%AF%87/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Redis-持久化篇 | 个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">好记性不如烂笔头</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://luoding.site/2020/06/03/Redis-%E6%8C%81%E4%B9%85%E5%8C%96%E7%AF%87/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="luoding">
+      <meta itemprop="description" content="气球在我手上">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Redis-持久化篇
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-06-03 10:05:51 / 修改时间：11:04:11" itemprop="dateCreated datePublished" datetime="2020-06-03T10:05:51+08:00">2020-06-03</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Redis/" itemprop="url" rel="index"><span itemprop="name">Redis</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="什么是持久化？"><a href="#什么是持久化？" class="headerlink" title="什么是持久化？"></a>什么是持久化？</h3><h4 id="先简单谈一谈是什么"><a href="#先简单谈一谈是什么" class="headerlink" title="先简单谈一谈是什么"></a>先简单谈一谈是什么</h4><p><code>Redis</code> 的数据 <code>全部存储</code> 在 <code>内存</code> 中，如果 <code>突然宕机</code>，数据就会全部丢失，因此必须有一套机制来保证 <code>Redis</code> 的数据不会因为故障而丢失，这种机制就是 <code>Redis</code> 的 <code>持久化机制</code>，它会将内存中的数据库状态 <code>保存到磁盘</code> 中。</p>
+<h4 id="持久化发生了什么"><a href="#持久化发生了什么" class="headerlink" title="持久化发生了什么"></a>持久化发生了什么</h4><p>通常来说，从客户端发起请求开始，到服务器真实地写入磁盘，需要发生如下几件事情：</p>
+<ol>
+<li>客户端向数据库 <code>发送写命令</code><strong>（数据在客户端的内存中）</strong></li>
+<li>数据库 <code>接收</code> 到客户端的 <code>写请求</code><strong>（数据在服务器的内存中）</strong></li>
+<li>数据库 <code>调用系统 API</code> 将数据写入磁盘<strong>（数据在内核缓冲区中）</strong></li>
+<li>操作系统将 <code>写缓冲区</code> 传输到 <code>磁盘控制器</code><strong>（数据在磁盘缓存中）</strong></li>
+<li>操作系统的磁盘控制器将数据 <code>写入实际的物理媒介</code> 中<strong>（数据在磁盘中）</strong></li>
+</ol>
+<a id="more"></a>
+
+<h3 id="Redis-中的两种持久化方式"><a href="#Redis-中的两种持久化方式" class="headerlink" title="Redis 中的两种持久化方式"></a>Redis 中的两种持久化方式</h3><h4 id="方式一：快照"><a href="#方式一：快照" class="headerlink" title="方式一：快照"></a>方式一：快照</h4><p><code>Redis 快照</code> 是最简单的 Redis 持久性模式。当满足特定条件时，它将生成数据集的时间点快照。例如，如果先前的快照是在 2 分钟前创建的，并且现在已经至少有 100 次新写入，则将创建一个新的快照。此条件可以由用户配置 Redis 实例来控制，也可以在运行时修改而无需重新启动服务器。快照作为包含整个数据集的单个 <code>.rdb</code> 文件生成。</p>
+<h4 id="方式二：AOF"><a href="#方式二：AOF" class="headerlink" title="方式二：AOF"></a>方式二：AOF</h4><p><code>AOF（Append Only File - 仅追加文件）</code> 它的工作方式非常简单：每次执行 <code>修改内存</code> 中数据集的写操作时，都会 <code>记录</code> 该操作。假设 AOF 日志记录了自 Redis 实例创建以来 <code>所有的修改性指令序列</code>，那么就可以通过对一个空的 Redis 实例 <code>顺序执行所有的指令</code>，也就是 <code>「重放」</code>，来恢复 Redis 当前实例的内存数据结构的状态。</p>
+<h4 id="Redis-4-0-的混合持久化"><a href="#Redis-4-0-的混合持久化" class="headerlink" title="Redis 4.0 的混合持久化"></a>Redis 4.0 的混合持久化</h4><p>重启 Redis 时，我们很少使用 <code>rdb</code> 来恢复内存状态，因为会丢失大量数据。我们通常使用 AOF 日志重放，但是重放 AOF 日志性能相对 <code>rdb</code> 来说要慢很多，这样在 Redis 实例很大的情况下，启动需要花费很长的时间。</p>
+<p><code>Redis 4.0</code> 为了解决这个问题，带来了一个新的持久化选项——<code>混合持久化</code>。将 <code>rdb</code> 文件的内容和增量的 AOF 日志文件存放在一起。这里的 AOF 日志不再是全量的日志，而是 <code>自持久化开始到持久化结束</code> 的这段时间发生的增量 AOF 日志，通常这部分 AOF 日志很小。于是在 Redis 重启的时候，可以先加载 <code>rdb</code> 的内容，然后再重放增量 AOF 日志就可以完全替代之前的 AOF 全量文件重放，重启效率因此大幅得到提升。</p>
+<h3 id="RDB-和-AOF-各自有什么优缺点"><a href="#RDB-和-AOF-各自有什么优缺点" class="headerlink" title="RDB 和 AOF 各自有什么优缺点"></a>RDB 和 AOF 各自有什么优缺点</h3><h4 id="RDB-优点"><a href="#RDB-优点" class="headerlink" title="RDB | 优点"></a>RDB | 优点</h4><ol>
+<li>只有一个文件 <code>dump.rdb</code>，<strong>方便持久化</strong></li>
+<li><strong>容灾性好</strong>，一个文件可以保存到安全的磁盘</li>
+<li><strong>性能最大化</strong>，<code>fork</code> 子进程来完成写操作，让主进程继续处理命令，所以使 IO 最大化。使用单独子进程来进行持久化，主进程不会进行任何 IO 操作，保证了 Redis 的高性能</li>
+<li>相对于数据集大时，比 AOF 的 <strong>启动效率</strong> 更高</li>
+</ol>
+<h4 id="RDB-缺点"><a href="#RDB-缺点" class="headerlink" title="RDB | 缺点"></a>RDB | 缺点</h4><ol>
+<li><strong>数据安全性低</strong>。RDB 是间隔一段时间进行持久化，如果持久化之间 Redis 发生故障，会发生数据丢失。所以这种方式更适合数据要求不严谨的时候</li>
+</ol>
+<h4 id="AOF-优点"><a href="#AOF-优点" class="headerlink" title="AOF | 优点"></a>AOF | 优点</h4><ol>
+<li><strong>数据安全</strong>，AOF 持久化可以配置 <code>appendsfsync</code> 属性，有 <code>always</code>，每进行一次命令操作就记录到 AOF 文件中一次</li>
+<li>通过 <code>append</code> 模式写文件，即使中途服务器宕机，可以通过 <code>redis-check-aof</code> 工具解决数据一致性问题</li>
+<li>AOF 机制的 rewrite 模式。AOF 文件没被 rewrite 之前（文件过大时会对命令进行合并重写），可以删除其中的某些命令（比如误操作的 flushall）</li>
+</ol>
+<h4 id="AOF-缺点"><a href="#AOF-缺点" class="headerlink" title="AOF | 缺点"></a>AOF | 缺点</h4><ol>
+<li>AOF 文件比 RDB <strong>文件大</strong>，且 <strong>恢复速度慢</strong></li>
+<li><strong>数据集大</strong> 的时候，比 rdb <strong>启动效率低</strong></li>
+</ol>
+<h3 id="两种方式如何选择？"><a href="#两种方式如何选择？" class="headerlink" title="两种方式如何选择？"></a>两种方式如何选择？</h3><ul>
+<li><p>如果想要保证 <strong>数据安全性</strong>，应该 <strong>同时使用两种持久化功能</strong>。在这种情况下，当 Redis 重启时会优先载入 AOF 文件来恢复原始的数据，因为通常情况下 AOF 文件保存的数据集要比 RDB 文件保存的数据集完整</p>
+</li>
+<li><p>如果 <strong>可以承受数分钟以内的数据丢失</strong>，可以 <strong>只使用 RDB 持久化</strong></p>
+</li>
+<li><p>如果只希望 <strong>数据在服务器运行时存在</strong>，可以 <strong>不使用任何持久化方式</strong></p>
+</li>
+</ul>
+<h3 id="Redis-的数据恢复"><a href="#Redis-的数据恢复" class="headerlink" title="Redis 的数据恢复"></a>Redis 的数据恢复</h3><p><code>Redis</code> 的数据恢复有如下优先级：</p>
+<ol>
+<li>如果只配置 AOF，重启时加载 AOF 文件恢复数据</li>
+<li>如果只配置 RDB，启动将加载 dump 文件恢复数据</li>
+<li>如果同时配置了 RDB 和 AOF，启动时只加载 AOF 文件恢复数据</li>
+</ol>
+<h3 id="相关系列"><a href="#相关系列" class="headerlink" title="相关系列"></a>相关系列</h3><ul>
+<li><p><a href="https://luoding.site/2020/04/10/Redis-%E5%9F%BA%E7%A1%80%E7%AF%87/#more">Redis-基础篇</a></p>
+</li>
+<li><p><a href="https://luoding.site/2020/06/01/Redis-%E6%95%B0%E6%8D%AE%E7%AF%87/#more">Redis-数据篇</a></p>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Redis/" rel="tag"># Redis</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/06/01/Redis-%E5%AD%97%E5%85%B8/" rel="prev" title="Redis-字典">
+      <i class="fa fa-chevron-left"></i> Redis-字典
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#什么是持久化？"><span class="nav-number">1.</span> <span class="nav-text">什么是持久化？</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#先简单谈一谈是什么"><span class="nav-number">1.1.</span> <span class="nav-text">先简单谈一谈是什么</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#持久化发生了什么"><span class="nav-number">1.2.</span> <span class="nav-text">持久化发生了什么</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Redis-中的两种持久化方式"><span class="nav-number">2.</span> <span class="nav-text">Redis 中的两种持久化方式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#方式一：快照"><span class="nav-number">2.1.</span> <span class="nav-text">方式一：快照</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#方式二：AOF"><span class="nav-number">2.2.</span> <span class="nav-text">方式二：AOF</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Redis-4-0-的混合持久化"><span class="nav-number">2.3.</span> <span class="nav-text">Redis 4.0 的混合持久化</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RDB-和-AOF-各自有什么优缺点"><span class="nav-number">3.</span> <span class="nav-text">RDB 和 AOF 各自有什么优缺点</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#RDB-优点"><span class="nav-number">3.1.</span> <span class="nav-text">RDB | 优点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#RDB-缺点"><span class="nav-number">3.2.</span> <span class="nav-text">RDB | 缺点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AOF-优点"><span class="nav-number">3.3.</span> <span class="nav-text">AOF | 优点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AOF-缺点"><span class="nav-number">3.4.</span> <span class="nav-text">AOF | 缺点</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#两种方式如何选择？"><span class="nav-number">4.</span> <span class="nav-text">两种方式如何选择？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Redis-的数据恢复"><span class="nav-number">5.</span> <span class="nav-text">Redis 的数据恢复</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#相关系列"><span class="nav-number">6.</span> <span class="nav-text">相关系列</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="luoding"
+      src="/images/avatar.jpeg">
+  <p class="site-author-name" itemprop="name">luoding</p>
+  <div class="site-description" itemprop="description">气球在我手上</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">16</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ballooninmyhand" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ballooninmyhand" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">luoding</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
