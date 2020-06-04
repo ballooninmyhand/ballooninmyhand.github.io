@@ -17,17 +17,17 @@
     var CONFIG = {"hostname":"luoding.site","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"XR6JS6RVRY","apiKey":"4950b6e734c27847c8112b7eaee87450","indexName":"test","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="主从复制主从复制，是指将一台 Redis 服务器的数据，复制到其他的 Redis 服务器。前者称为 主节点（master），后者称为 从节点（slave）。且数据的复制是单向的，只能有主节点到从节点。 Redis 主从复制支持 主从同步 和 从从同步 两种，后者是 Redis 后续版本新增的功能，以减轻主节点的同步负担。 主要的作用 数据冗余：主从复制实现了数据的热备份，是持久化之外的一种数据冗余">
+  <meta name="description" content="主从复制主从复制，是指将一台 Redis 服务器的数据，复制到其他的 Redis 服务器。前者称为 主节点（master），后者称为 从节点（slave）。且数据的复制是单向的，只能有主节点到从节点。 Redis 主从复制支持 主从同步 和 从从同步 两种，后者是 Redis 后续版本新增的功能，以减轻主节点的同步负担。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Redis-集群篇">
 <meta property="og:url" content="https://luoding.site/2020/06/03/Redis-%E9%9B%86%E7%BE%A4%E7%AF%87/index.html">
 <meta property="og:site_name" content="个人博客">
-<meta property="og:description" content="主从复制主从复制，是指将一台 Redis 服务器的数据，复制到其他的 Redis 服务器。前者称为 主节点（master），后者称为 从节点（slave）。且数据的复制是单向的，只能有主节点到从节点。 Redis 主从复制支持 主从同步 和 从从同步 两种，后者是 Redis 后续版本新增的功能，以减轻主节点的同步负担。 主要的作用 数据冗余：主从复制实现了数据的热备份，是持久化之外的一种数据冗余">
+<meta property="og:description" content="主从复制主从复制，是指将一台 Redis 服务器的数据，复制到其他的 Redis 服务器。前者称为 主节点（master），后者称为 从节点（slave）。且数据的复制是单向的，只能有主节点到从节点。 Redis 主从复制支持 主从同步 和 从从同步 两种，后者是 Redis 后续版本新增的功能，以减轻主节点的同步负担。">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/007S8ZIlgy1gfg76zmzpfj30u00cutag.jpg">
 <meta property="og:image" content="https://mmbiz.qpic.cn/mmbiz_png/ia1kbU3RS1H7iacDCtsE2vxokt1kuyOCzFeTRLvicdbHE4XNW1QHzTSEq9dbqu08YpJ59Hu1J0OICjy1Rb766vicFA/640?wx_fmt=png&wxfrom=5&wx_lazy=1&wx_co=1">
 <meta property="article:published_time" content="2020-06-03T03:15:49.000Z">
-<meta property="article:modified_time" content="2020-06-04T08:29:24.309Z">
+<meta property="article:modified_time" content="2020-06-04T08:33:04.004Z">
 <meta property="article:author" content="luoding">
 <meta property="article:tag" content="Redis">
 <meta name="twitter:card" content="summary">
@@ -217,7 +217,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-06-04 16:29:24" itemprop="dateModified" datetime="2020-06-04T16:29:24+08:00">2020-06-04</time>
+                <time title="修改时间：2020-06-04 16:33:04" itemprop="dateModified" datetime="2020-06-04T16:33:04+08:00">2020-06-04</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -242,6 +242,8 @@
       
         <h3 id="主从复制"><a href="#主从复制" class="headerlink" title="主从复制"></a>主从复制</h3><p><strong>主从复制</strong>，是指将一台 Redis 服务器的数据，复制到其他的 Redis 服务器。前者称为 <strong>主节点（master）</strong>，后者称为 <strong>从节点（slave）</strong>。且数据的复制是<strong>单向</strong>的，只能有主节点到从节点。</p>
 <p>Redis 主从复制支持 <strong>主从同步</strong> 和 <strong>从从同步</strong> 两种，后者是 Redis 后续版本新增的功能，以减轻主节点的同步负担。</p>
+<a id="more"></a>
+
 <h4 id="主要的作用"><a href="#主要的作用" class="headerlink" title="主要的作用"></a>主要的作用</h4><ul>
 <li><strong>数据冗余：</strong>主从复制实现了数据的热备份，是持久化之外的一种数据冗余方式</li>
 <li><strong>故障恢复：</strong>当主节点出现问题时，可以由从节点提供服务，实现快速的故障恢复</li>

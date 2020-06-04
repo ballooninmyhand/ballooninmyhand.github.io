@@ -211,7 +211,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-06-04 16:29:24" itemprop="dateModified" datetime="2020-06-04T16:29:24+08:00">2020-06-04</time>
+                <time title="修改时间：2020-06-04 16:33:04" itemprop="dateModified" datetime="2020-06-04T16:33:04+08:00">2020-06-04</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -236,158 +236,14 @@
       
           <h3 id="主从复制"><a href="#主从复制" class="headerlink" title="主从复制"></a>主从复制</h3><p><strong>主从复制</strong>，是指将一台 Redis 服务器的数据，复制到其他的 Redis 服务器。前者称为 <strong>主节点（master）</strong>，后者称为 <strong>从节点（slave）</strong>。且数据的复制是<strong>单向</strong>的，只能有主节点到从节点。</p>
 <p>Redis 主从复制支持 <strong>主从同步</strong> 和 <strong>从从同步</strong> 两种，后者是 Redis 后续版本新增的功能，以减轻主节点的同步负担。</p>
-<h4 id="主要的作用"><a href="#主要的作用" class="headerlink" title="主要的作用"></a>主要的作用</h4><ul>
-<li><strong>数据冗余：</strong>主从复制实现了数据的热备份，是持久化之外的一种数据冗余方式</li>
-<li><strong>故障恢复：</strong>当主节点出现问题时，可以由从节点提供服务，实现快速的故障恢复</li>
-<li><strong>负载均衡：</strong>在主从复制的基础上，配合读写分离，可以由主节点提供写服务，由从节点提供读服务<strong><em>（即写 Redis 数据时应用连接主节点，读 Redis 数据时应用连接从节点）</em></strong>，分担服务器负载；尤其是在写少读多的场景下，通过多个从节点分担读负载，可以大大的提高 Redis 服务器的并发量</li>
-<li><strong>读写分离：</strong>可以用于实现读写分离，主库写、从库读，读写分离不仅可以提高服务器的负载能力，同时可根据需求的变化，改变从库的数量</li>
-<li><strong>高可用基石：</strong>主从复制还是哨兵和集群能够实施的<strong>基础</strong>，因此说主从复制是 Redis 高可用的基础</li>
-</ul>
-<h4 id="如何启用"><a href="#如何启用" class="headerlink" title="如何启用"></a>如何启用</h4><p>从节点开启主从复制，有 3 种方式：</p>
-<p>① 配置文件：在从服务器的配置文件中加入：<code>slaveof &lt;masterhost&gt; &lt;masterport&gt;</code></p>
-<p>② 启动命令：redis-server 启动命令后加入 <code>-- slaveof &lt;masterhost&gt; &lt;masterport&gt;</code></p>
-<p>③ 客户端命令：Redis 服务器启动后，直接通过客户端执行命令：<code>slaveof &lt;masterhost&gt; &lt;masterport&gt;</code>，则该 Redis 实例成为从节点</p>
-<h4 id="复制功能的实现"><a href="#复制功能的实现" class="headerlink" title="复制功能的实现"></a>复制功能的实现</h4><p><code>Redis</code> 使用 <code>PSYNC</code> 命令来执行复制时的同步操作，<code>PSYNC</code> 命令具有完整重同步和部分重同步两种模式：</p>
-<ul>
-<li>完整重同步用于处理初次复制情况：通过让主服务器创建并发送 <code>RDB</code> 文件，以及向从服务器发送保存在缓冲区里面的写命令来进行同步</li>
-<li>部分重同步用于处理断线后重复制情况：当从服务器在断线后重新连接主服务器时，如果条件允许，主服务器可以将主从服务器连接断开期间执行的写命令发送给从服务器，从服务器只要接收并执行这些写命令，就可以将数据库更新至主服务器当前所处的状态</li>
-</ul>
-<h4 id="部分重同步的实现"><a href="#部分重同步的实现" class="headerlink" title="部分重同步的实现"></a>部分重同步的实现</h4><p>部分重同步功能由以下三个部分构成：</p>
-<ul>
-<li>主服务器的复制偏移量（replication offset）和从服务器的复制偏移量</li>
-<li>主服务器的复制积压缓冲区（replication backlog）</li>
-<li>服务器的运行ID（run ID）</li>
-</ul>
-<p><strong>复制偏移量</strong></p>
-<p>执行复制的双方——主服务器和从服务器会分别维护一个复制偏移量。</p>
-<p>主服务器每次向从服务器传播 N 个字节的数据时，就将自己的复制偏移量的值加上 N；从服务器每次收到主服务器传播来的 N 个字节的数据时，就将自己的复制偏移量的值加上 N。</p>
-<p>通过对比主从服务器的复制偏移量，程序可以很容易地知道主从服务器是否处于一致状态。</p>
-<p><strong>复制积压缓冲区</strong></p>
-<p>复制积压缓冲区是由主服务器维护的一个固定长度（fixed-size）先进先出（FIFO）队列，默认大小为1MB。</p>
-<p>主服务器的复制积压缓冲区里面会保存着一部分最近传播的写命令，并且复制积压缓冲区会为队列中的每个字节记录相应的复制偏移量。</p>
-<p>当从服务器重新连上主服务器时，从服务器会通过 PSYNC 命令将自己的复制偏移量 offset 发送给主服务器，主服务器会根据这个复制偏移量来决定对从服务器执行何种同步操作：</p>
-<ul>
-<li>如果 offset 偏移量之后的数据（也即是偏移量 offset+1 开始的数据）仍然存在于复制积压缓冲区里面，那么主服务器将对从服务器执行部分重同步操作</li>
-<li>相反，如果 offset 偏移量之后的数据已经不存在于复制积压缓冲区，那么主服务器将对从服务器执行完整重同步操作</li>
-</ul>
-<p><strong>服务器运行ID</strong></p>
-<p>除了复制偏移量和复制积压缓冲区之外，实现部分重同步还需要用到服务器运行ID（run ID）：</p>
-<ul>
-<li>每个 Redis 服务器，不论主服务器还是从服务，都会有自己的运行 ID</li>
-<li>运行 ID 在服务器启动时自动生成，由40个随机的十六进制字符组成，例如53b9b28df8042fdc9ab5e3fcbbbabff1d5dce2b3</li>
-</ul>
-<p>当从服务器对主服务器进行初次复制时，主服务器会将自己的运行ID传送给从服务器，而从服务器则会将这个运行 ID 保存起来。</p>
-<p>当从服务器断线并重新连上一个主服务器时，从服务器将向当前连接的主服务器发送之前保存的运行ID：</p>
-<ul>
-<li>如果从服务器保存的运行 ID 和当前连接的主服务器的运行 ID 相同，那么说明从服务器断线之前复制的就是当前连接的这个主服务器，主服务器可以继续尝试执行部分重同步操作</li>
-<li>相反地，如果从服务器保存的运行 ID 和当前连接的主服务器的运行 ID 并不相同，那么说明从服务器断线之前复制的主服务器并不是当前连接的这个主服务器，主服务器将对从服务器执行完整重同步操作</li>
-</ul>
-<h4 id="复制的具体步骤"><a href="#复制的具体步骤" class="headerlink" title="复制的具体步骤"></a>复制的具体步骤</h4><p>在从节点执行 slaveof 命令后，复制过程便开始执行，大致分为 7 个步骤：</p>
-<p>① <strong>设置主服务器的地址和端口</strong></p>
-<p>从服务器首先要做的就是将客户端给定的主服务器的 IP 地址以及端口保存到服务器状态的 masterhost 属性和 masterport 属性里</p>
-<p>② <strong>建立套接字连接</strong></p>
-<p>在 slaveof 命令执行之后，从服务器将根据命令所设置的 IP 地址和端口，创建连向主服务器的套接字连接</p>
-<p>③ <strong>发送 ping 命令</strong></p>
-<p>连接建立成功后从节点发送 ping 请求进行首次通信，ping 请求主要目的如下：</p>
-<ul>
-<li>检测主从之间网络套接字是否可用</li>
-<li>检测主节点当前是否可接受处理命令</li>
-</ul>
-<p>④ <strong>身份验证</strong></p>
-<p>从服务器在收到主服务器返回的 “PONG” 回复之后，下一步要做的就是决定是否进行身份验证：</p>
-<ul>
-<li>如果从服务器设置了 masterauth 选项，那么进行身份验证</li>
-<li>如果从服务器没有设置 masterauth 选项，那么不进行身份验证</li>
-</ul>
-<p>⑤ <strong>发送端口信息</strong></p>
-<p>在身份验证步骤成功之后，从服务器执行命令 <code>REPLCONF listening-port ＜port-number＞</code>，向主服务器发送从服务器的监听端口号，主服务器在接收到这个命令之后，会将端口号记录在从服务器所对应的客户端状态的<code>slave_listening_port</code> 属性中，<code>slave_listening_port</code> 属性目前唯一的作用就是在主服务器执行 <code>INFO replication</code> 命令时打印出从服务器的端口号</p>
-<p>⑥ <strong>同步数据集</strong></p>
-<p>主从复制连接正常通信后，对于首次建立复制的场景，主节点会把持有的数据全部发送给从节点，这部分操作是耗时最长的步骤</p>
-<p>⑦ <strong>命令传播</strong></p>
-<p>当主节点把当前的数据同步给从节点后，便完成了复制的建立流程。接下来主节点会持续地把写命令发送给从节点，保证主从数据一致性</p>
-<h4 id="心跳检测"><a href="#心跳检测" class="headerlink" title="心跳检测"></a>心跳检测</h4><p>在命令传播阶段，从服务器默认会以每秒一次的频率，向主服务器发送命令：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">REPLCONF ACK &lt;replication_offset&gt;</span><br></pre></td></tr></table></figure>
-
-<p>其中 replication_offset 是从服务器当前的复制偏移量。发送 REPLCONF ACK 命令对于主从服务器有三个作用：</p>
-<ul>
-<li>检测主从服务器的网络连接状态</li>
-<li>辅助实现min-slaves选项</li>
-<li>检测命令丢失</li>
-</ul>
-<h3 id="哨兵模式"><a href="#哨兵模式" class="headerlink" title="哨兵模式"></a>哨兵模式</h3><h4 id="节点配置示意图"><a href="#节点配置示意图" class="headerlink" title="节点配置示意图"></a>节点配置示意图</h4><p>下面的示意图中，将采用 Redis 官方文档所使用的表示方法，<code>M</code> 代表一个主节点，<code>R</code> 代表一个从节点，<code>S</code> 代表一个 <code>Sentinel</code> 节点。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">       +----+</span><br><span class="line">       | M1 |</span><br><span class="line">       | S1 |</span><br><span class="line">       +----+</span><br><span class="line">          |</span><br><span class="line">+----+    |    +----+</span><br><span class="line">| R2 |----+----| R3 |</span><br><span class="line">| S2 |         | S3 |</span><br><span class="line">+----+         +----+</span><br></pre></td></tr></table></figure>
-
-<p>上图展示了一个典型的哨兵架构图，它由两部分组成，哨兵节点和数据节点：</p>
-<ul>
-<li><strong>哨兵节点：</strong>哨兵系统由一个或多个哨兵节点组成，哨兵节点是特殊的 Redis 节点，不存储数据</li>
-<li><strong>数据节点：</strong>主节点和从节点都是数据节点</li>
-</ul>
-<p>在复制的基础上，哨兵实现了 <strong>自动化的故障恢复</strong> 功能，下面是官方对于哨兵功能的描述：</p>
-<ul>
-<li><strong>监控（Monitoring）：</strong> 哨兵会不断地检查主节点和从节点是否运作正常。</li>
-<li><strong>自动故障转移（Automatic failover）：</strong> 当 <strong>主节点</strong> 不能正常工作时，哨兵会开始 <strong>自动故障转移操作</strong>，它会将失效主节点的其中一个 <strong>从节点升级为新的主节点</strong>，并让其他从节点改为复制新的主节点。</li>
-<li><strong>配置提供者（Configuration provider）：</strong> 客户端在初始化时，通过连接哨兵来获得当前 Redis 服务的主节点地址。</li>
-<li><strong>通知（Notification）：</strong> 哨兵可以将故障转移的结果发送给客户端。</li>
-</ul>
-<p>其中，监控和自动故障转移功能，使得哨兵可以及时发现主节点故障并完成转移。而配置提供者和通知功能，则需要在与客户端的交互中才能体现。</p>
-<h4 id="如何挑选新的主服务器？"><a href="#如何挑选新的主服务器？" class="headerlink" title="如何挑选新的主服务器？"></a>如何挑选新的主服务器？</h4><p><strong>故障转移操作的第一步</strong> 就是在已下线主服务器属下的所有从服务器中，挑选出一个状态良好、数据完整的从服务器，然后向这个从服务器发送 <code>slaveof no one</code> 命令，将这个从服务器转换为主服务器。但是这个从服务器是怎么样被挑选出来的呢？</p>
-<p>简单来说 Sentinel 使用以下规则来选择新的主服务器：</p>
-<ol>
-<li>在失效主服务器属下的从服务器中，被标记为主观下线、已断线或者最后一次回复 PING 命令的时间大于五秒钟的从服务器都会被<strong>淘汰</strong></li>
-<li>在失效主服务器属下的从服务器中，那些与失效主服务器连接断开的时长超过 down-after 选项指定的时长十倍的从服务器都会被<strong>淘汰</strong></li>
-<li>在 <strong>经历了两轮淘汰之后</strong> 剩余的从服务器中，选出 <strong>复制偏移量最大</strong> 的 <strong>从服务器</strong> 作为新的主服务器；如果复制偏移量不可用，或者从服务器的复制偏移量相同，那么 <strong>带有最小运行 ID</strong> 的从服务器成为新的主服务器</li>
-</ol>
-<h3 id="Redis-集群"><a href="#Redis-集群" class="headerlink" title="Redis 集群"></a>Redis 集群</h3><p><img src="https://tva1.sinaimg.cn/large/007S8ZIlgy1gfg76zmzpfj30u00cutag.jpg" alt="img"></p>
-<p>上图展示了 Redis Cluster 典型的架构图，集群中每一个 Redis 节点都 <strong>互相两两相连</strong>，客户端任意 <strong>直连</strong> 到集群中的 <strong>任意一台</strong>，就可以对其他 Redis 节点进行 <strong>读写</strong> 的操作。</p>
-<h4 id="基本原理"><a href="#基本原理" class="headerlink" title="基本原理"></a>基本原理</h4><p>Redis 集群中内置了 <code>16384</code> 个哈希槽。当客户端连接到 Redis 集群之后，会同时得到一份关于这个 <strong>集群的配置信息</strong>，当客户端具体对某一个 <code>key</code> 值进行操作时，会计算出它的一个 Hash 值，然后把结果对 <code>16384</code> <strong>求余数</strong>，这样每个 <code>key</code> 都会对应一个编号在 <code>0~16383</code> 之间的哈希槽，Redis 会根据节点数量 <code>大致均等</code> 的将哈希槽映射到不同的节点。</p>
-<p>再结合集群的配置信息就能够知道这个 <code>key</code> 值应该存储在哪一个具体的 Redis 节点中，如果不属于自己管，那么就会使用一个特殊的 <code>MOVED</code> 命令来进行一个跳转，告诉客户端去连接这个节点以获取数据：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">GET x</span><br><span class="line">-MOVER 3999 127.0.0.1:6381</span><br></pre></td></tr></table></figure>
-
-<p><code>MOVED</code> 指令第一个参数 <code>3999</code> 是 <code>key</code> 对应的槽位编号，后面是目标节点地址，<code>MOVED</code> 命令前面有个减号，表示这是一个错误的信息。客户端周期收到 <code>MOVED</code> 指令后，就立即纠正本地的 <code>槽位映射表</code>，那么下一次再访问 <code>key</code> 时就能够到正确的地方去获取了。</p>
-<h4 id="集群的主要作用"><a href="#集群的主要作用" class="headerlink" title="集群的主要作用"></a>集群的主要作用</h4><ol>
-<li><strong>数据分区：</strong>数据分区<strong><em>（或称数据分片）</em></strong>是集群最核心的功能。集群将数据分散到多个节点，<strong>一方面</strong> 突破了 Redis 单机内存大小的限制，<strong>存储容量大大增加</strong>；<strong>另一方面</strong> 每个主节点都可以对外提供读服务和写服务，<strong>大大提高了集群的响应能力</strong>。</li>
-<li><strong>高可用：</strong>集群支持主从复制和主节点的 <strong>自动故障转移</strong>，当任一节点发生故障时，集群仍然可以对外提供服务。</li>
-</ol>
-<h4 id="集群中数据如何分区？"><a href="#集群中数据如何分区？" class="headerlink" title="集群中数据如何分区？"></a>集群中数据如何分区？</h4><p>Redis 采用方案三。</p>
-<p><strong>方案一：哈希值 % 节点数</strong></p>
-<p>哈希取余分区思路非常简单：计算 <code>key</code> 的 hash 值，然后对节点数量进行取余，从而决定数据映射到哪个节点上。</p>
-<p>不过该方案最大的问题是，<strong>当新增或删减节点时</strong>，节点数量发生变化，系统中所有的数据都需要 <strong>重新计算映射关系</strong>，引发大规模数据迁移。</p>
-<p><strong>方案二：一致性哈希分区</strong></p>
-<p>一致性哈希算法将 <strong>整个哈希值空间</strong> 组织成一个虚拟的圆环，范围是 *[0 - 232 - 1]*，对于每一个数据，根据 <code>key</code> 计算 hash 值，确数据在环上的位置，然后从此位置沿顺时针行走，找到的第一台服务器就是其应该映射到的服务器：</p>
-<p><img src="https://mmbiz.qpic.cn/mmbiz_png/ia1kbU3RS1H7iacDCtsE2vxokt1kuyOCzFeTRLvicdbHE4XNW1QHzTSEq9dbqu08YpJ59Hu1J0OICjy1Rb766vicFA/640?wx_fmt=png&wxfrom=5&wx_lazy=1&wx_co=1" alt="img"></p>
-<p>与哈希取余分区相比，一致性哈希分区将 <strong>增减节点的影响限制在相邻节点</strong>。以上图为例，如果在 <code>node1</code> 和 <code>node2</code> 之间增加 <code>node5</code>，则只有 <code>node2</code> 中的一部分数据会迁移到 <code>node5</code>；如果去掉 <code>node2</code>，则原 <code>node2</code> 中的数据只会迁移到 <code>node4</code> 中，只有 <code>node4</code> 会受影响。</p>
-<p>一致性哈希分区的主要问题在于，当 <strong>节点数量较少</strong> 时，增加或删减节点，<strong>对单个节点的影响可能很大</strong>，造成数据的严重不平衡。还是以上图为例，如果去掉 <code>node2</code>，<code>node4</code> 中的数据由总数据的 <code>1/4</code> 左右变为 <code>1/2</code> 左右，与其他节点相比负载过高。</p>
-<p><strong>方案三：带有虚拟节点的一致性哈希分区</strong></p>
-<p>该方案在 <strong>一致性哈希分区的基础上</strong>，引入了 <strong>虚拟节点</strong> 的概念。Redis 集群使用的便是该方案，其中的虚拟节点称为 <strong>槽（slot）</strong>。槽是介于数据和实际节点之间的虚拟概念，每个实际节点包含一定数量的槽，每个槽包含哈希值在一定范围内的数据。</p>
-<p>在使用了槽的一致性哈希分区中，<strong>槽是数据管理和迁移的基本单位</strong>。槽 <strong>解耦</strong> 了 <strong>数据和实际节点</strong> 之间的关系，增加或删除节点对系统的影响很小。仍以上图为例，系统中有 <code>4</code> 个实际节点，假设为其分配 <code>16</code> 个槽(0-15)；</p>
-<ul>
-<li>槽 0-3 位于 node1；4-7 位于 node2；以此类推….</li>
-</ul>
-<p>如果此时删除 <code>node2</code>，只需要将槽 4-7 重新分配即可，例如槽 4-5 分配给 <code>node1</code>，槽 6 分配给 <code>node3</code>，槽 7 分配给 <code>node4</code>；可以看出删除 <code>node2</code> 后，数据在其他节点的分布仍然较为均衡。</p>
-<h4 id="集群数据如何存储？"><a href="#集群数据如何存储？" class="headerlink" title="集群数据如何存储？"></a>集群数据如何存储？</h4><p>节点需要专门的数据结构来存储集群的状态。所谓集群的状态，是一个比较大的概念，包括：集群是否处于上线状态、集群中有哪些节点、节点是否可达、节点的主从状态、槽的分布……</p>
-<p>节点为了存储集群状态而提供的数据结构中，最关键的是 <code>clusterNode</code> 和 <code>clusterState</code> 结构：前者记录了一个节点的状态，后者记录了集群作为一个整体的状态。</p>
-<p><strong>clusterNode 结构</strong></p>
-<p><code>clusterNode</code> 结构保存了 <strong>一个节点的当前状态</strong>，包括创建时间、节点 id、ip 和端口号等。每个节点都会用一个 <code>clusterNode</code> 结构记录自己的状态，并为集群内所有其他节点都创建一个 <code>clusterNode</code> 结构来记录节点状态。</p>
-<p>下面列举了 <code>clusterNode</code> 的部分字段，并说明了字段的含义和作用：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">clusterNode</span> &#123;</span></span><br><span class="line">    <span class="comment">//节点创建时间</span></span><br><span class="line">    <span class="keyword">mstime_t</span> ctime;</span><br><span class="line">    <span class="comment">//节点id</span></span><br><span class="line">    <span class="keyword">char</span> name[REDIS_CLUSTER_NAMELEN];</span><br><span class="line">    <span class="comment">//节点的ip和端口号</span></span><br><span class="line">    <span class="keyword">char</span> ip[REDIS_IP_STR_LEN];</span><br><span class="line">    <span class="keyword">int</span> port;</span><br><span class="line">    <span class="comment">//节点标识：整型，每个bit都代表了不同状态，如节点的主从状态、是否在线、是否在握手等</span></span><br><span class="line">    <span class="keyword">int</span> flags;</span><br><span class="line">    <span class="comment">//配置纪元：故障转移时起作用，类似于哨兵的配置纪元</span></span><br><span class="line">    <span class="keyword">uint64_t</span> configEpoch;</span><br><span class="line">    <span class="comment">//槽在该节点中的分布：占用16384/8个字节，16384个比特；每个比特对应一个槽：比特值为1，则该比特对应的槽在节点中；比特值为0，则该比特对应的槽不在节点中</span></span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">char</span> slots[<span class="number">16384</span>/<span class="number">8</span>];</span><br><span class="line">    <span class="comment">//节点中槽的数量</span></span><br><span class="line">    <span class="keyword">int</span> numslots;</span><br><span class="line">    …………</span><br><span class="line">&#125; clusterNode;</span><br></pre></td></tr></table></figure>
-
-<p>除了上述字段，<code>clusterNode</code> 还包含节点连接、主从复制、故障发现和转移需要的信息等。</p>
-<p><strong>clusterState 结构</strong></p>
-<p><code>clusterState</code> 结构保存了在当前节点视角下，集群所处的状态。主要字段包括：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">clusterState</span> &#123;</span></span><br><span class="line">    <span class="comment">//自身节点</span></span><br><span class="line">    clusterNode *myself;</span><br><span class="line">    <span class="comment">//配置纪元</span></span><br><span class="line">    <span class="keyword">uint64_t</span> currentEpoch;</span><br><span class="line">    <span class="comment">//集群状态：在线还是下线</span></span><br><span class="line">    <span class="keyword">int</span> state;</span><br><span class="line">    <span class="comment">//集群中至少包含一个槽的节点数量</span></span><br><span class="line">    <span class="keyword">int</span> <span class="built_in">size</span>;</span><br><span class="line">    <span class="comment">//哈希表，节点名称-&gt;clusterNode节点指针</span></span><br><span class="line">    dict *nodes;</span><br><span class="line">    <span class="comment">//槽分布信息：数组的每个元素都是一个指向clusterNode结构的指针；如果槽还没有分配给任何节点，则为NULL</span></span><br><span class="line">    clusterNode *slots[<span class="number">16384</span>];</span><br><span class="line">    …………</span><br><span class="line">&#125; clusterState;</span><br></pre></td></tr></table></figure>
-
-<p>除此之外，<code>clusterState</code> 还包括故障转移、槽迁移等需要的信息。</p>
-<h3 id="相关系列"><a href="#相关系列" class="headerlink" title="相关系列"></a>相关系列</h3><ul>
-<li><p><a href="https://luoding.site/2020/04/10/Redis-%E5%9F%BA%E7%A1%80%E7%AF%87/#more">Redis-基础篇</a></p>
-</li>
-<li><p><a href="https://luoding.site/2020/06/01/Redis-%E6%95%B0%E6%8D%AE%E7%AF%87/#more">Redis-数据篇</a></p>
-</li>
-<li><p><a href="https://luoding.site/2020/06/03/Redis-%E6%8C%81%E4%B9%85%E5%8C%96%E7%AF%87/#more">Redis-持久化篇</a></p>
-</li>
-<li><p><a href="https://luoding.site/2020/06/03/Redis-%E9%9B%86%E7%BE%A4%E7%AF%87/#more">Redis-集群篇</a></p>
-</li>
-</ul>
-
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/06/03/Redis-%E9%9B%86%E7%BE%A4%E7%AF%87/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
