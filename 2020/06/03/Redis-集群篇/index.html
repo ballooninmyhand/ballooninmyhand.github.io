@@ -17,30 +17,36 @@
     var CONFIG = {"hostname":"luoding.site","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"XR6JS6RVRY","apiKey":"4950b6e734c27847c8112b7eaee87450","indexName":"test","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="气球在我手上">
-<meta property="og:type" content="website">
-<meta property="og:title" content="个人博客">
-<meta property="og:url" content="https://luoding.site/index.html">
+  <meta name="description" content="主从复制主从复制，是指将一台 Redis 服务器的数据，复制到其他的 Redis 服务器。前者称为 主节点（master），后者称为 从节点（slave）。且数据的复制是单向的，只能有主节点到从节点。 Redis 主从复制支持 主从同步 和 从从同步 两种，后者是 Redis 后续版本新增的功能，以减轻主节点的同步负担。 主要的作用 数据冗余：主从复制实现了数据的热备份，是持久化之外的一种数据冗余">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis-集群篇">
+<meta property="og:url" content="https://luoding.site/2020/06/03/Redis-%E9%9B%86%E7%BE%A4%E7%AF%87/index.html">
 <meta property="og:site_name" content="个人博客">
-<meta property="og:description" content="气球在我手上">
+<meta property="og:description" content="主从复制主从复制，是指将一台 Redis 服务器的数据，复制到其他的 Redis 服务器。前者称为 主节点（master），后者称为 从节点（slave）。且数据的复制是单向的，只能有主节点到从节点。 Redis 主从复制支持 主从同步 和 从从同步 两种，后者是 Redis 后续版本新增的功能，以减轻主节点的同步负担。 主要的作用 数据冗余：主从复制实现了数据的热备份，是持久化之外的一种数据冗余">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/007S8ZIlgy1gfg76zmzpfj30u00cutag.jpg">
+<meta property="og:image" content="https://mmbiz.qpic.cn/mmbiz_png/ia1kbU3RS1H7iacDCtsE2vxokt1kuyOCzFeTRLvicdbHE4XNW1QHzTSEq9dbqu08YpJ59Hu1J0OICjy1Rb766vicFA/640?wx_fmt=png&wxfrom=5&wx_lazy=1&wx_co=1">
+<meta property="article:published_time" content="2020-06-03T03:15:49.000Z">
+<meta property="article:modified_time" content="2020-06-04T08:05:20.940Z">
 <meta property="article:author" content="luoding">
+<meta property="article:tag" content="Redis">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/007S8ZIlgy1gfg76zmzpfj30u00cutag.jpg">
 
-<link rel="canonical" href="https://luoding.site/">
+<link rel="canonical" href="https://luoding.site/2020/06/03/Redis-%E9%9B%86%E7%BE%A4%E7%AF%87/">
 
 
 <script id="page-configurations">
   // https://hexo.io/docs/variables.html
   CONFIG.page = {
     sidebar: "",
-    isHome : true,
-    isPost : false,
+    isHome : false,
+    isPost : true,
     lang   : 'zh-CN'
   };
 </script>
 
-  <title>个人博客</title>
+  <title>Redis-集群篇 | 个人博客</title>
   
 
 
@@ -174,9 +180,10 @@
         <div class="content-wrap">
           
 
-          <div class="content index posts-expand">
+          <div class="content post posts-expand">
             
-      
+
+    
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
@@ -192,10 +199,9 @@
       <meta itemprop="name" content="个人博客">
     </span>
       <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/06/03/Redis-%E9%9B%86%E7%BE%A4%E7%AF%87/" class="post-title-link" itemprop="url">Redis-集群篇</a>
-        </h2>
+        <h1 class="post-title" itemprop="name headline">
+          Redis-集群篇
+        </h1>
 
         <div class="post-meta">
             <span class="post-meta-item">
@@ -234,7 +240,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h3 id="主从复制"><a href="#主从复制" class="headerlink" title="主从复制"></a>主从复制</h3><p><strong>主从复制</strong>，是指将一台 Redis 服务器的数据，复制到其他的 Redis 服务器。前者称为 <strong>主节点（master）</strong>，后者称为 <strong>从节点（slave）</strong>。且数据的复制是<strong>单向</strong>的，只能有主节点到从节点。</p>
+        <h3 id="主从复制"><a href="#主从复制" class="headerlink" title="主从复制"></a>主从复制</h3><p><strong>主从复制</strong>，是指将一台 Redis 服务器的数据，复制到其他的 Redis 服务器。前者称为 <strong>主节点（master）</strong>，后者称为 <strong>从节点（slave）</strong>。且数据的复制是<strong>单向</strong>的，只能有主节点到从节点。</p>
 <p>Redis 主从复制支持 <strong>主从同步</strong> 和 <strong>从从同步</strong> 两种，后者是 Redis 后续版本新增的功能，以减轻主节点的同步负担。</p>
 <h4 id="主要的作用"><a href="#主要的作用" class="headerlink" title="主要的作用"></a>主要的作用</h4><ul>
 <li><strong>数据冗余：</strong>主从复制实现了数据的热备份，是持久化之外的一种数据冗余方式</li>
@@ -378,778 +384,34 @@
 
 <p>除此之外，<code>clusterState</code> 还包括故障转移、槽迁移等需要的信息。</p>
 
-      
     </div>
 
     
     
     
+
       <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
+          <div class="post-tags">
+              <a href="/tags/Redis/" rel="tag"># Redis</a>
+          </div>
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://luoding.site/2020/06/03/Redis-%E6%8C%81%E4%B9%85%E5%8C%96%E7%AF%87/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-      <meta itemprop="name" content="luoding">
-      <meta itemprop="description" content="气球在我手上">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="个人博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/06/03/Redis-%E6%8C%81%E4%B9%85%E5%8C%96%E7%AF%87/" class="post-title-link" itemprop="url">Redis-持久化篇</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2020-06-03 10:05:51 / 修改时间：11:07:46" itemprop="dateCreated datePublished" datetime="2020-06-03T10:05:51+08:00">2020-06-03</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Redis/" itemprop="url" rel="index"><span itemprop="name">Redis</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h3 id="什么是持久化？"><a href="#什么是持久化？" class="headerlink" title="什么是持久化？"></a>什么是持久化？</h3><h4 id="先简单谈一谈是什么"><a href="#先简单谈一谈是什么" class="headerlink" title="先简单谈一谈是什么"></a>先简单谈一谈是什么</h4><p><code>Redis</code> 的数据 <code>全部存储</code> 在 <code>内存</code> 中，如果 <code>突然宕机</code>，数据就会全部丢失，因此必须有一套机制来保证 <code>Redis</code> 的数据不会因为故障而丢失，这种机制就是 <code>Redis</code> 的 <code>持久化机制</code>，它会将内存中的数据库状态 <code>保存到磁盘</code> 中。</p>
-<h4 id="持久化发生了什么"><a href="#持久化发生了什么" class="headerlink" title="持久化发生了什么"></a>持久化发生了什么</h4><p>通常来说，从客户端发起请求开始，到服务器真实地写入磁盘，需要发生如下几件事情：</p>
-<ol>
-<li>客户端向数据库 <code>发送写命令</code><strong>（数据在客户端的内存中）</strong></li>
-<li>数据库 <code>接收</code> 到客户端的 <code>写请求</code><strong>（数据在服务器的内存中）</strong></li>
-<li>数据库 <code>调用系统 API</code> 将数据写入磁盘<strong>（数据在内核缓冲区中）</strong></li>
-<li>操作系统将 <code>写缓冲区</code> 传输到 <code>磁盘控制器</code><strong>（数据在磁盘缓存中）</strong></li>
-<li>操作系统的磁盘控制器将数据 <code>写入实际的物理媒介</code> 中<strong>（数据在磁盘中）</strong></li>
-</ol>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/06/03/Redis-%E6%8C%81%E4%B9%85%E5%8C%96%E7%AF%87/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
         
-      
-    </div>
 
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://luoding.site/2020/06/01/Redis-%E5%AD%97%E5%85%B8/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-      <meta itemprop="name" content="luoding">
-      <meta itemprop="description" content="气球在我手上">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="个人博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/06/01/Redis-%E5%AD%97%E5%85%B8/" class="post-title-link" itemprop="url">Redis-字典</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2020-06-01 23:24:25 / 修改时间：23:25:14" itemprop="dateCreated datePublished" datetime="2020-06-01T23:24:25+08:00">2020-06-01</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Redis/" itemprop="url" rel="index"><span itemprop="name">Redis</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h3 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h3><p>字典，又称为符号表（symbol table）、关联数组（associative array）或映射（map），是一种用于保存键值对（key-value pair）的抽象数据结构。</p>
-<p>在字典中，一个键（key）可以和一个值（value）进行关联（或者说将键映射为值），这些关联的键和值就称为键值对。</p>
-<p>字典中的每个键都是独一无二的，程序可以在字典中根据键查找与之关联的值，或者通过键来更新值，又或者根据键来删除整个键值对，等等。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/06/01/Redis-%E5%AD%97%E5%85%B8/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
         
-      
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/06/03/Redis-%E6%8C%81%E4%B9%85%E5%8C%96%E7%AF%87/" rel="prev" title="Redis-持久化篇">
+      <i class="fa fa-chevron-left"></i> Redis-持久化篇
+    </a></div>
+      <div class="post-nav-item"></div>
     </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
       </footer>
+    
   </article>
   
   
   
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://luoding.site/2020/06/01/Redis-%E6%95%B0%E6%8D%AE%E7%AF%87/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-      <meta itemprop="name" content="luoding">
-      <meta itemprop="description" content="气球在我手上">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="个人博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/06/01/Redis-%E6%95%B0%E6%8D%AE%E7%AF%87/" class="post-title-link" itemprop="url">Redis-数据篇</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-06-01 15:08:42" itemprop="dateCreated datePublished" datetime="2020-06-01T15:08:42+08:00">2020-06-01</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-06-03 11:07:57" itemprop="dateModified" datetime="2020-06-03T11:07:57+08:00">2020-06-03</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Redis/" itemprop="url" rel="index"><span itemprop="name">Redis</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h3 id="简述-Redis-常用数据结构及实现？"><a href="#简述-Redis-常用数据结构及实现？" class="headerlink" title="简述 Redis 常用数据结构及实现？"></a>简述 Redis 常用数据结构及实现？</h3><p>首先在 Redis 内部会使用一个 <strong>RedisObject</strong> 对象来表示所有的 <strong>key</strong> 和 <strong>value</strong>，其次 Redis 为了 <strong>平衡空间和时间效率</strong>，针对 <strong>value</strong> 的具体类型在底层会采用不同的数据结构。</p>
-<h3 id="Redis-的-SDS-和-C-中字符串相比有什么优势？"><a href="#Redis-的-SDS-和-C-中字符串相比有什么优势？" class="headerlink" title="Redis 的 SDS 和 C 中字符串相比有什么优势？"></a>Redis 的 SDS 和 C 中字符串相比有什么优势？</h3><h4 id="简单总结"><a href="#简单总结" class="headerlink" title="简单总结"></a>简单总结</h4><p>C 语言使用了一个长度为 <strong>N+1</strong> 的字符数组来表示长度为 <strong>N</strong> 的字符串，并且字符数组最后一个元素总是 <strong>\0</strong>，这种简单的字符串表示方式<strong>不符合 Redis 对字符串在安全性、效率以及功能方面的要求</strong>。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/06/01/Redis-%E6%95%B0%E6%8D%AE%E7%AF%87/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://luoding.site/2020/04/10/Redis-%E5%9F%BA%E7%A1%80%E7%AF%87/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-      <meta itemprop="name" content="luoding">
-      <meta itemprop="description" content="气球在我手上">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="个人博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/04/10/Redis-%E5%9F%BA%E7%A1%80%E7%AF%87/" class="post-title-link" itemprop="url">Redis-基础篇</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-04-10 16:14:01" itemprop="dateCreated datePublished" datetime="2020-04-10T16:14:01+08:00">2020-04-10</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-06-03 11:07:51" itemprop="dateModified" datetime="2020-06-03T11:07:51+08:00">2020-06-03</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Redis/" itemprop="url" rel="index"><span itemprop="name">Redis</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h3 id="什么是-Redis？"><a href="#什么是-Redis？" class="headerlink" title="什么是 Redis？"></a>什么是 Redis？</h3><h4 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h4><p>Redis 是一个用 C 语言编写的，开源的高性能非关系型的键值对数据库。</p>
-<h4 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h4><p>Redis 可以存储键和不同类型数据结构值之间的映射关系。键的类型只能是字符串，而值除了基础的五种数据类型之外，还支持一些高级数据类型：</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/04/10/Redis-%E5%9F%BA%E7%A1%80%E7%AF%87/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://luoding.site/2020/04/06/%E4%BD%BF%E7%94%A8Docker%E9%85%8D%E7%BD%AERedis%E5%93%A8%E5%85%B5/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-      <meta itemprop="name" content="luoding">
-      <meta itemprop="description" content="气球在我手上">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="个人博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/04/06/%E4%BD%BF%E7%94%A8Docker%E9%85%8D%E7%BD%AERedis%E5%93%A8%E5%85%B5/" class="post-title-link" itemprop="url">使用 Docker 配置 Redis 哨兵</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2020-04-06 11:15:13 / 修改时间：17:04:14" itemprop="dateCreated datePublished" datetime="2020-04-06T11:15:13+08:00">2020-04-06</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Docker/" itemprop="url" rel="index"><span itemprop="name">Docker</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Docker/Redis/" itemprop="url" rel="index"><span itemprop="name">Redis</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>本篇文章介绍如何使用 Docker 配置 Redis 哨兵来监视 Redis 主从服务器，实现 Redis 的高可用性。内容包括涉及的目录结构、<code>docker-compose.yml</code> 的编写以及结果的验证。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/04/06/%E4%BD%BF%E7%94%A8Docker%E9%85%8D%E7%BD%AERedis%E5%93%A8%E5%85%B5/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://luoding.site/2020/04/04/%E4%BD%BF%E7%94%A8Docker%E9%85%8D%E7%BD%AERedis%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-      <meta itemprop="name" content="luoding">
-      <meta itemprop="description" content="气球在我手上">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="个人博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/04/04/%E4%BD%BF%E7%94%A8Docker%E9%85%8D%E7%BD%AERedis%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6/" class="post-title-link" itemprop="url">使用 Docker 配置 Redis 主从复制</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-04-04 22:49:10" itemprop="dateCreated datePublished" datetime="2020-04-04T22:49:10+08:00">2020-04-04</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-06 17:00:33" itemprop="dateModified" datetime="2020-04-06T17:00:33+08:00">2020-04-06</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Docker/" itemprop="url" rel="index"><span itemprop="name">Docker</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Docker/Redis/" itemprop="url" rel="index"><span itemprop="name">Redis</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>这篇文章主要介绍如何使用 Docker 在本机搭建一个带有主从复制功能的 Redis 环境，内容包括涉及的目录结构、<code>docker-compose.yml</code> 的编写，以及结果的验证。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/04/04/%E4%BD%BF%E7%94%A8Docker%E9%85%8D%E7%BD%AERedis%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://luoding.site/2020/03/14/%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AAVUE%E9%A1%B9%E7%9B%AE/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-      <meta itemprop="name" content="luoding">
-      <meta itemprop="description" content="气球在我手上">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="个人博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/03/14/%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AAVUE%E9%A1%B9%E7%9B%AE/" class="post-title-link" itemprop="url">创建一个 VUE 项目</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-03-14 23:18:34" itemprop="dateCreated datePublished" datetime="2020-03-14T23:18:34+08:00">2020-03-14</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-06 17:13:07" itemprop="dateModified" datetime="2020-04-06T17:13:07+08:00">2020-04-06</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">前端</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%89%8D%E7%AB%AF/VUE/" itemprop="url" rel="index"><span itemprop="name">VUE</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>Vue (读音 /vjuː/，类似于 <strong>view</strong>) 是一套用于构建用户界面的<strong>渐进式框架</strong>。与其它大型框架不同的是，Vue 被设计为可以自底向上逐层应用。Vue 的核心库只关注视图层，不仅易于上手，还便于与第三方库或既有项目整合。另一方面，当与<a href="https://cn.vuejs.org/v2/guide/single-file-components.html" target="_blank" rel="noopener">现代化的工具链</a>以及各种<a href="https://github.com/vuejs/awesome-vue#libraries--plugins" target="_blank" rel="noopener">支持类库</a>结合使用时，Vue 也完全能够为复杂的单页应用提供驱动。</p>
-<p>这篇文章主要介绍如何创建一个 VUE 项目。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/03/14/%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AAVUE%E9%A1%B9%E7%9B%AE/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://luoding.site/2020/03/05/DNMP%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-      <meta itemprop="name" content="luoding">
-      <meta itemprop="description" content="气球在我手上">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="个人博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/03/05/DNMP%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" class="post-title-link" itemprop="url">DNMP 环境搭建</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-03-05 23:06:29" itemprop="dateCreated datePublished" datetime="2020-03-05T23:06:29+08:00">2020-03-05</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-06 17:12:30" itemprop="dateModified" datetime="2020-04-06T17:12:30+08:00">2020-04-06</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Docker/" itemprop="url" rel="index"><span itemprop="name">Docker</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Docker/PHP/" itemprop="url" rel="index"><span itemprop="name">PHP</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>这篇文章主要介绍如何用 Docker 快速搭建一套 PHP 开发环境。</p>
-<h3 id="环境要求"><a href="#环境要求" class="headerlink" title="环境要求"></a>环境要求</h3><ul>
-<li><code>git</code></li>
-<li><code>docker</code></li>
-<li><code>docker-compose</code></li>
-</ul>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/03/05/DNMP%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://luoding.site/2020/03/04/%E7%94%A8Docker%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AAPHP%E9%95%9C%E5%83%8F/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-      <meta itemprop="name" content="luoding">
-      <meta itemprop="description" content="气球在我手上">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="个人博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/03/04/%E7%94%A8Docker%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AAPHP%E9%95%9C%E5%83%8F/" class="post-title-link" itemprop="url">用 Docker 创建一个 PHP 镜像</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-03-04 22:57:58" itemprop="dateCreated datePublished" datetime="2020-03-04T22:57:58+08:00">2020-03-04</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-06 17:12:24" itemprop="dateModified" datetime="2020-04-06T17:12:24+08:00">2020-04-06</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Docker/" itemprop="url" rel="index"><span itemprop="name">Docker</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Docker/PHP/" itemprop="url" rel="index"><span itemprop="name">PHP</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>本篇介绍了如何使用 Docker 创建一个 PHP 镜像，以下是具体步骤：</p>
-<h4 id="创建目录"><a href="#创建目录" class="headerlink" title="创建目录"></a>创建目录</h4><blockquote>
-<p>mkdir php</p>
-<p>cd php</p>
-</blockquote>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/03/04/%E7%94%A8Docker%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AAPHP%E9%95%9C%E5%83%8F/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-
-  
-  <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
-  </nav>
 
 
 
@@ -1201,6 +463,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#主从复制"><span class="nav-number">1.</span> <span class="nav-text">主从复制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#主要的作用"><span class="nav-number">1.1.</span> <span class="nav-text">主要的作用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#如何启用"><span class="nav-number">1.2.</span> <span class="nav-text">如何启用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#复制功能的实现"><span class="nav-number">1.3.</span> <span class="nav-text">复制功能的实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#部分重同步的实现"><span class="nav-number">1.4.</span> <span class="nav-text">部分重同步的实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#复制的具体步骤"><span class="nav-number">1.5.</span> <span class="nav-text">复制的具体步骤</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#心跳检测"><span class="nav-number">1.6.</span> <span class="nav-text">心跳检测</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#哨兵模式"><span class="nav-number">2.</span> <span class="nav-text">哨兵模式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#节点配置示意图"><span class="nav-number">2.1.</span> <span class="nav-text">节点配置示意图</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#如何挑选新的主服务器？"><span class="nav-number">2.2.</span> <span class="nav-text">如何挑选新的主服务器？</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Redis-集群"><span class="nav-number">3.</span> <span class="nav-text">Redis 集群</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#基本原理"><span class="nav-number">3.1.</span> <span class="nav-text">基本原理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#集群的主要作用"><span class="nav-number">3.2.</span> <span class="nav-text">集群的主要作用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#集群中数据如何分区？"><span class="nav-number">3.3.</span> <span class="nav-text">集群中数据如何分区？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#集群数据如何存储？"><span class="nav-number">3.4.</span> <span class="nav-text">集群数据如何存储？</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
